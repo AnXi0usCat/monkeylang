@@ -1,7 +1,8 @@
 use std::fmt;
 use std::fmt::{Formatter, write};
 
-enum Token {
+#[derive(Debug, PartialEq)]
+pub enum Token {
     Illegal,
     Eof,
 
@@ -44,13 +45,5 @@ impl fmt::Display for Token {
             Token::Let => write!(f, "LET"),
             Token::Function => write!(f, "FUNCTION")
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
     }
 }
