@@ -35,7 +35,7 @@ impl<'a> Lexer<'a> {
             ',' => Token::Comma,
             '\u{0}' => Token::Eof,
             _ => {
-               let c =  if self.ch.is_alphabetic() {
+               return if self.ch.is_alphabetic() {
                    let ident = self.read_identifier();
                    lookup_identifier(ident)
                 } else if self.ch.is_numeric() {
@@ -44,12 +44,9 @@ impl<'a> Lexer<'a> {
                 } else {
                      Token::Illegal
                 };
-                println!("printing {};" , c);
-                return c;
             }
         };
         self.read_char();
-        println!("printing {};" , tok);
         tok
     }
 
