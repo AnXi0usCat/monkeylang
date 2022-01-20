@@ -1,6 +1,6 @@
 use std::iter::Peekable;
 use std::str::Chars;
-use crate::token::Token;
+use crate::token::{Token, lookup_identifier};
 
 pub struct Lexer<'a>{
     input: &'a str,
@@ -22,6 +22,8 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn next_token(&mut self) -> Token {
+        self.skip_whitespace();
+
         let tok = match self.ch {
             '=' => Token::Assign,
             '+' => Token::Plus,
@@ -32,19 +34,56 @@ impl<'a> Lexer<'a> {
             '}' => Token::Rbrace,
             ',' => Token::Comma,
             '\u{0}' => Token::Eof,
-            _ => Token::Illegal
+            _ => {
+               let c =  if self.ch.is_alphabetic() {
+                   let ident = self.read_identifier();
+                   lookup_identifier(ident)
+                } else if self.ch.is_numeric() {
+                   let digit = self.read_number();
+                     Token::Int(String::from(digit))
+                } else {
+                     Token::Illegal
+                };
+                println!("printing {};" , c);
+                return c;
+            }
         };
         self.read_char();
+        println!("printing {};" , tok);
         tok
     }
 
-    pub fn read_char(&mut self) {
+    fn read_char(&mut self) {
         self.position += if self.ch == '\u{0}' {
             0
         } else {
             self.ch.len_utf8()
         };
         self.ch = self.chars.next().unwrap_or('\u{0}');
+    }
+
+    fn read_identifier(&mut self) -> &str {
+        let position = self.position;
+
+        while self.ch.is_alphanumeric() {
+            self.read_char();
+        }
+        &self.input[position..self.position]
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '\r' {
+            self.read_char();
+        }
+    }
+
+    fn read_number(&mut self) -> &str {
+        let position = self.position;
+
+        while self.ch.is_numeric() {
+            self.read_char();
+        }
+        &self.input[position..self.position]
     }
 }
 
@@ -55,16 +94,54 @@ mod tests {
 
     #[test]
     fn next_token() {
-        let input = "=+(){},;";
+        let input = "
+        let five = 5;
+
+        let ten = 10;
+           let add = fn(x, y) {
+             x + y;
+        };
+
+        let result = add(five, ten);";
         let mut lexer = Lexer::new(input);
 
         let tests = [
+            Token::Let,
+            Token::Ident("five".to_string()),
             Token::Assign,
-            Token::Plus,
+            Token::Int("5".to_string()),
+            Token::Semicolon,
+            Token::Let,
+            Token::Ident("ten".to_string()),
+            Token::Assign,
+            Token::Int("10".to_string()),
+            Token::Semicolon,
+            Token::Let,
+            Token::Ident("add".to_string()),
+            Token::Assign,
+            Token::Function,
             Token::Lparen,
+            Token::Ident("x".to_string()),
+            Token::Comma,
+            Token::Ident("y".to_string()),
             Token::Rparen,
             Token::Lbrace,
-            Token::Rbrace
+            Token::Ident("x".to_string()),
+            Token::Plus,
+            Token::Ident("y".to_string()),
+            Token::Semicolon,
+            Token::Rbrace,
+            Token::Semicolon,
+            Token::Let,
+            Token::Ident("result".to_string()),
+            Token::Assign,
+            Token::Ident("add".to_string()),
+            Token::Lparen,
+            Token::Ident("five".to_string()),
+            Token::Comma,
+            Token::Ident("ten".to_string()),
+            Token::Rparen,
+            Token::Semicolon
         ];
 
         for (i, test) in tests.iter().enumerate() {
