@@ -47,3 +47,11 @@ impl fmt::Display for Token {
         }
     }
 }
+
+pub fn lookup_identifier(ident: &str) -> Token {
+    match ident {
+        "fn" => Token::Function,
+        "let" => Token::Let,
+        _ => Token::Ident(String::from(ident))
+    }
+}
