@@ -25,8 +25,42 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         let tok = match self.ch {
-            '=' => Token::Assign,
+            '=' => {
+                if Some(&'=') == self.chars.peek() {
+                    self.read_char();
+                    Token::Equals
+                } else {
+                    Token::Assign
+                }
+            },
             '+' => Token::Plus,
+            '-' => Token::Minus,
+            '!' => {
+                if Some(&'=') == self.chars.peek() {
+                    self.read_char();
+                    Token::Nequals
+                } else {
+                    Token::Bang
+                }
+            },
+            '*' => Token::Asterisk,
+            '/' => Token::Slash,
+            '>' => {
+                if Some(&'=') == self.chars.peek() {
+                    self.read_char();
+                    Token::Gequals
+                } else {
+                    Token::Gthen
+                }
+            },
+            '<' => {
+                if Some(&'=') == self.chars.peek() {
+                    self.read_char();
+                     Token::Lequals
+                } else {
+                    Token::Lthen
+                }
+            }
             ';' => Token::Semicolon,
             '(' => Token::Lparen,
             ')' => Token::Rparen,
@@ -99,7 +133,17 @@ mod tests {
              x + y;
         };
 
-        let result = add(five, ten);";
+        let result = add(five, ten);
+        !-/*5;
+        5 < 10 > 5;
+        if (5 < 10) {
+            return true;
+        } else {
+            return false;
+        }
+        10 == 10;
+        10 != 9;";
+
         let mut lexer = Lexer::new(input);
 
         let tests = [
@@ -138,7 +182,44 @@ mod tests {
             Token::Comma,
             Token::Ident("ten".to_string()),
             Token::Rparen,
-            Token::Semicolon
+            Token::Semicolon,
+            Token::Bang,
+            Token::Minus,
+            Token::Slash,
+            Token::Asterisk,
+            Token::Int("5".to_string()),
+            Token::Semicolon,
+            Token::Int("5".to_string()),
+            Token::Lthen,
+            Token::Int("10".to_string()),
+            Token::Gthen,
+            Token::Int("5".to_string()),
+            Token::Semicolon,
+            Token::If,
+            Token::Lparen,
+            Token::Int("5".to_string()),
+            Token::Lthen,
+            Token::Int("10".to_string()),
+            Token::Rparen,
+            Token::Lbrace,
+            Token::Return,
+            Token::True,
+            Token::Semicolon,
+            Token::Rbrace,
+            Token::Else,
+            Token::Lbrace,
+            Token::Return,
+            Token::False,
+            Token::Semicolon,
+            Token::Rbrace,
+            Token::Int("10".to_string()),
+            Token::Equals,
+            Token::Int("10".to_string()),
+            Token::Semicolon,
+            Token::Int("10".to_string()),
+            Token::Nequals,
+            Token::Int("9".to_string()),
+            Token::Semicolon,
         ];
 
         for (i, test) in tests.iter().enumerate() {
