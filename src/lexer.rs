@@ -25,42 +25,14 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         let tok = match self.ch {
-            '=' => {
-                if Some(&'=') == self.chars.peek() {
-                    self.read_char();
-                    Token::Equals
-                } else {
-                    Token::Assign
-                }
-            },
+            '=' => self.two_ch_token(Token::Equals, Token::Assign, '='),
             '+' => Token::Plus,
             '-' => Token::Minus,
-            '!' => {
-                if Some(&'=') == self.chars.peek() {
-                    self.read_char();
-                    Token::Nequals
-                } else {
-                    Token::Bang
-                }
-            },
+            '!' => self.two_ch_token(Token::Nequals, Token::Bang, '='),
             '*' => Token::Asterisk,
             '/' => Token::Slash,
-            '>' => {
-                if Some(&'=') == self.chars.peek() {
-                    self.read_char();
-                    Token::Gequals
-                } else {
-                    Token::Gthen
-                }
-            },
-            '<' => {
-                if Some(&'=') == self.chars.peek() {
-                    self.read_char();
-                     Token::Lequals
-                } else {
-                    Token::Lthen
-                }
-            }
+            '>' => self.two_ch_token( Token::Gequals, Token::Gthen, '='),
+            '<' => self.two_ch_token( Token::Lequals, Token::Lthen, '='),
             ';' => Token::Semicolon,
             '(' => Token::Lparen,
             ')' => Token::Rparen,
@@ -105,6 +77,15 @@ impl<'a> Lexer<'a> {
     fn skip_whitespace(&mut self) {
         while self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '\r' {
             self.read_char();
+        }
+    }
+
+    fn two_ch_token(&mut self, token_if: Token, token_else: Token, test_ch: char) -> Token {
+        if Some(&test_ch) == self.chars.peek() {
+            self.read_char();
+            token_if
+        } else {
+            token_else
         }
     }
 
