@@ -5,6 +5,7 @@ use crate::lexer::Lexer;
 pub fn start() {
 
     let stdin = io::stdin();
+    println!("Hello! This is the 🐒 programming language!");
 
     loop {
         let mut input =  String::new();
