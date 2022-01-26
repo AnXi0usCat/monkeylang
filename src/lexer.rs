@@ -106,7 +106,7 @@ impl<'a> Iterator for Lexer<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.next_token() {
             Token::Eof => None,
-            token=> Some(token)
+            token => Some(token)
         }
     }
 }
