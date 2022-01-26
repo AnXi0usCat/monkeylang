@@ -46,9 +46,10 @@ impl<'a> Lexer<'a> {
                    lookup_identifier(ident)
                 } else if self.ch.is_numeric() {
                    let digit = self.read_number();
-                     Token::Int(String::from(digit))
+                   Token::Int(String::from(digit))
                 } else {
-                     Token::Illegal
+                   self.read_char();
+                   Token::Illegal
                 };
             }
         };
@@ -96,6 +97,17 @@ impl<'a> Lexer<'a> {
             self.read_char();
         }
         &self.input[position..self.position]
+    }
+}
+
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next_token() {
+            Token::Eof => None,
+            token=> Some(token)
+        }
     }
 }
 
