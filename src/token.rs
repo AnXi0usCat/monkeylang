@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Formatter, write};
+use std::fmt::Formatter;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
