@@ -3,7 +3,7 @@ use std::fmt::Formatter;
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    statements: Vec<Statement>
+    pub statements: Vec<Statement>
 }
 
 impl fmt::Display for Program {
@@ -16,7 +16,7 @@ impl fmt::Display for Program {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-enum Statement {
+pub enum Statement {
     Let(String, Expression)
 }
 
