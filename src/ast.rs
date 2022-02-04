@@ -30,7 +30,7 @@ impl fmt::Display for Statement {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-enum Expression {
+pub enum Expression {
     Identifier(String)
 }
 
