@@ -1,7 +1,8 @@
-use std::{io, mem};
+use std::mem;
+use std::error::Error;
 use crate::lexer::Lexer;
 use crate::token::Token;
-use crate::ast::{Program, Statement};
+use crate::ast::{Program, Statement, Expression};
 
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
@@ -41,15 +42,39 @@ impl<'a> Parser<'a> {
         Program { statements }
     }
     
-    fn parse_statement(&mut self) -> Result<Statement, E> {
+    fn parse_statement(&mut self) -> Result<Statement, String> {
         match self.cur_token {
             Token::Let => self.parse_let_statement(),
-            _ => Err("")
+            _ => Err("".to_string())
         }
     }
 
-    fn parse_let_statement(&mut self) -> Statement::Let {
+    fn parse_let_statement(&mut self) -> Result<Statement, String> {
+        let name;
 
+        if let Token::Ident(ident) = self.peek_token.clone() {
+            name = ident;
+            self.next_token();
+        } else {
+            return Err(format!("Unexpected token. Expected identifier, received {} instead.",
+                                 self.peek_token.to_string()));
+        }
+
+        if self.peek_token != Token::Assign {
+            return Err(format!("Unexpected token. Expected {}, received {} instead.",
+                        Token::Assign, self.peek_token.to_string()));
+        }
+
+        self.next_token();
+
+        // skip the Expression part foe now
+        let value = Expression::Identifier("".to_string());
+
+        while self.peek_token != Token::Semicolon {
+            self.next_token();
+        }
+
+        Ok(Statement::Let(name, value))
     }
 }
 
