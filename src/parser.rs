@@ -83,8 +83,17 @@ mod tests {
     use crate::lexer::Lexer;
     use crate::parser::Parser;
 
-    #[text]
+    #[test]
     fn let_statement() {
+        let input = "
+            let x = 5;
+            let y = 1023;
+            let foobar = x + y;
+        ";
 
+        let mut lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+        println!("{}", program);
     }
 }
