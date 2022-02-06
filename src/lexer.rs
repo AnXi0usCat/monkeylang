@@ -45,8 +45,17 @@ impl<'a> Lexer<'a> {
                    let ident = self.read_identifier();
                    lookup_identifier(ident)
                 } else if self.ch.is_numeric() {
-                   let digit = self.read_number();
-                   Token::Int(String::from(digit))
+                   let integer_part = self.read_number().to_string();
+                   if self.ch == '.' && self.chars
+                       .peek()
+                       .unwrap_or(&'\u{0}')
+                       .is_numeric() {
+                       self.read_char();
+                       let decimal_part = self.read_number();
+                       Token::Float(format!("{}.{}", integer_part, decimal_part))
+                   } else  {
+                       Token::Int(String::from(integer_part))
+                   }
                 } else {
                    self.read_char();
                    Token::Illegal
@@ -135,7 +144,9 @@ mod tests {
             return false;
         }
         10 == 10;
-        10 != 9;";
+        10 != 9;
+        12.345
+        0.12";
 
         let mut lexer = Lexer::new(input);
 
@@ -213,6 +224,8 @@ mod tests {
             Token::Nequals,
             Token::Int("9".to_string()),
             Token::Semicolon,
+            Token::Float("12.345".to_string()),
+            Token::Float("0.12".to_string()),
         ];
 
         for (i, test) in tests.iter().enumerate() {
