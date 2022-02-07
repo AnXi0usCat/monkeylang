@@ -6,7 +6,8 @@ use crate::ast::{Program, Statement, Expression};
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     cur_token: Token,
-    peek_token: Token
+    peek_token: Token,
+    errors: Vec<String>
 }
 
 impl<'a> Parser<'a> {
@@ -14,7 +15,8 @@ impl<'a> Parser<'a> {
         let mut parser = Parser {
             lexer,
             cur_token: Token::Illegal,
-            peek_token: Token::Illegal
+            peek_token: Token::Illegal,
+            errors: vec![]
         };
         parser.next_token();
         parser.next_token();
@@ -33,7 +35,7 @@ impl<'a> Parser<'a> {
         while self.cur_token != Token::Eof {
             match self.parse_statement() {
                 Ok(res) => statements.push(res),
-                Err(err) => panic!(format!("failed to parse statement {}", err))
+                Err(err) => self.errors.push(err)
             }
             self.next_token();
         }
@@ -67,7 +69,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         // current token is expression after '='
         // skip the Expression part for now
-        let value = Expression::Identifier("".to_string());
+        let value = Expression::Identifier("PLACEHOLDER\n".to_string());
 
         while self.peek_token != Token::Semicolon {
             self.next_token();
