@@ -62,10 +62,8 @@ impl<'a> Parser<'a> {
                                  self.peek_token.to_string()));
         }
         // current token is '='
-        if self.peek_token != Token::Assign {
-            return Err(format!("Unexpected token. Expected {}, received {} instead.",
-                        Token::Assign, self.peek_token.to_string()));
-        }
+        self.expect_peek(Token::Assign)?;
+
         self.next_token();
         // current token is expression after '='
         // skip the Expression part for now
@@ -79,6 +77,14 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         Ok(Statement::Let(name, value))
+    }
+
+    fn expect_peek(&mut self, expected: Token) -> Result<(), String> {
+        if self.peek_token != expected {
+            return Err(format!("Expected {}, got {} instead", expected, self.peek_token))
+        }
+        self.next_token();
+        Ok(())
     }
 }
 
