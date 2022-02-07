@@ -1,5 +1,4 @@
 use std::mem;
-use std::error::Error;
 use crate::lexer::Lexer;
 use crate::token::Token;
 use crate::ast::{Program, Statement, Expression};
@@ -34,7 +33,7 @@ impl<'a> Parser<'a> {
         while self.cur_token != Token::Eof {
             match self.parse_statement() {
                 Ok(res) => statements.push(res),
-                Err(err) => panic!("failed to parse statement {}", err)
+                Err(err) => panic!(format!("failed to parse statement {}", err))
             }
             self.next_token();
         }
@@ -52,6 +51,7 @@ impl<'a> Parser<'a> {
     fn parse_let_statement(&mut self) -> Result<Statement, String> {
         let name;
 
+        // current token is whatever comes after 'let'
         if let Token::Ident(ident) = self.peek_token.clone() {
             name = ident;
             self.next_token();
@@ -59,20 +59,22 @@ impl<'a> Parser<'a> {
             return Err(format!("Unexpected token. Expected identifier, received {} instead.",
                                  self.peek_token.to_string()));
         }
-
+        // current token is '='
         if self.peek_token != Token::Assign {
             return Err(format!("Unexpected token. Expected {}, received {} instead.",
                         Token::Assign, self.peek_token.to_string()));
         }
-
         self.next_token();
-
-        // skip the Expression part foe now
+        // current token is expression after '='
+        // skip the Expression part for now
         let value = Expression::Identifier("".to_string());
 
         while self.peek_token != Token::Semicolon {
             self.next_token();
         }
+
+        // current token is ';'
+        self.next_token();
 
         Ok(Statement::Let(name, value))
     }
@@ -91,7 +93,7 @@ mod tests {
             let foobar = x + y;
         ";
 
-        let mut lexer = Lexer::new(input);
+        let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
         println!("{}", program);
