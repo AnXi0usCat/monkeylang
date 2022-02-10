@@ -1,12 +1,12 @@
+use crate::token::{lookup_identifier, Token};
 use std::iter::Peekable;
 use std::str::Chars;
-use crate::token::{Token, lookup_identifier};
 
-pub struct Lexer<'a>{
+pub struct Lexer<'a> {
     input: &'a str,
     position: usize,
     ch: char,
-    chars: Peekable<Chars<'a>>
+    chars: Peekable<Chars<'a>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -15,7 +15,7 @@ impl<'a> Lexer<'a> {
             input,
             position: 0,
             ch: '\u{0}',
-            chars: input.chars().peekable()
+            chars: input.chars().peekable(),
         };
         lexer.read_char();
         lexer
@@ -41,24 +41,21 @@ impl<'a> Lexer<'a> {
             ',' => Token::Comma,
             '\u{0}' => Token::Eof,
             _ => {
-               return if self.ch.is_alphabetic() {
-                   let ident = self.read_identifier();
-                   lookup_identifier(ident)
+                return if self.ch.is_alphabetic() {
+                    let ident = self.read_identifier();
+                    lookup_identifier(ident)
                 } else if self.ch.is_numeric() {
-                   let integer_part = self.read_number().to_string();
-                   if self.ch == '.' && self.chars
-                       .peek()
-                       .unwrap_or(&'\u{0}')
-                       .is_numeric() {
-                       self.read_char();
-                       let decimal_part = self.read_number();
-                       Token::Float(format!("{}.{}", integer_part, decimal_part))
-                   } else  {
-                       Token::Int(String::from(integer_part))
-                   }
+                    let integer_part = self.read_number().to_string();
+                    if self.ch == '.' && self.chars.peek().unwrap_or(&'\u{0}').is_numeric() {
+                        self.read_char();
+                        let decimal_part = self.read_number();
+                        Token::Float(format!("{}.{}", integer_part, decimal_part))
+                    } else {
+                        Token::Int(String::from(integer_part))
+                    }
                 } else {
-                   self.read_char();
-                   Token::Illegal
+                    self.read_char();
+                    Token::Illegal
                 };
             }
         };
@@ -115,7 +112,7 @@ impl<'a> Iterator for Lexer<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.next_token() {
             Token::Eof => None,
-            token => Some(token)
+            token => Some(token),
         }
     }
 }
@@ -233,5 +230,4 @@ mod tests {
             assert_eq!(&token, test, "tests[{}] - token", i)
         }
     }
-
 }

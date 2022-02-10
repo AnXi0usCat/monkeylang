@@ -1,14 +1,13 @@
-use std::{io, process};
-use std::io::BufRead;
 use crate::lexer::Lexer;
+use std::io::BufRead;
+use std::{io, process};
 
 pub fn start() {
-
     let stdin = io::stdin();
     println!("Hello! This is the 🐒 programming language!");
 
     loop {
-        let mut input =  String::new();
+        let mut input = String::new();
         print!("{}", ">> ");
 
         stdin.lock().read_line(&mut input).unwrap_or_else(|err| {

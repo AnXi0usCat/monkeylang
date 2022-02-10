@@ -1,13 +1,13 @@
-use std::mem;
+use crate::ast::{Expression, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
-use crate::ast::{Program, Statement, Expression};
+use std::mem;
 
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     cur_token: Token,
     peek_token: Token,
-    errors: Vec<String>
+    errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -16,7 +16,7 @@ impl<'a> Parser<'a> {
             lexer,
             cur_token: Token::Illegal,
             peek_token: Token::Illegal,
-            errors: vec![]
+            errors: vec![],
         };
         parser.next_token();
         parser.next_token();
@@ -24,9 +24,7 @@ impl<'a> Parser<'a> {
     }
 
     fn next_token(&mut self) {
-        self.cur_token = mem::replace(
-            &mut self.peek_token, self.lexer.next_token()
-        )
+        self.cur_token = mem::replace(&mut self.peek_token, self.lexer.next_token())
     }
 
     fn parse_program(&mut self) -> Program {
@@ -35,18 +33,18 @@ impl<'a> Parser<'a> {
         while self.cur_token != Token::Eof {
             match self.parse_statement() {
                 Ok(res) => statements.push(res),
-                Err(err) => self.errors.push(err)
+                Err(err) => self.errors.push(err),
             }
             self.next_token();
         }
 
         Program { statements }
     }
-    
+
     fn parse_statement(&mut self) -> Result<Statement, String> {
         match self.cur_token {
             Token::Let => self.parse_let_statement(),
-            _ => Err("p".to_string())
+            _ => Err("p".to_string()),
         }
     }
 
@@ -58,8 +56,10 @@ impl<'a> Parser<'a> {
             name = ident;
             self.next_token();
         } else {
-            return Err(format!("Unexpected token. Expected identifier, received {} instead.",
-                                 self.peek_token.to_string()));
+            return Err(format!(
+                "Unexpected token. Expected identifier, received {} instead.",
+                self.peek_token.to_string()
+            ));
         }
         // current token is '='
         self.expect_peek(Token::Assign)?;
@@ -79,7 +79,10 @@ impl<'a> Parser<'a> {
 
     fn expect_peek(&mut self, expected: Token) -> Result<(), String> {
         if self.peek_token != expected {
-            return Err(format!("Expected {}, got {} instead", expected, self.peek_token))
+            return Err(format!(
+                "Expected {}, got {} instead",
+                expected, self.peek_token
+            ));
         }
         self.next_token();
         Ok(())
@@ -88,10 +91,10 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::vec;
     use crate::ast::{Expression, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
+    use std::vec;
 
     #[test]
     fn let_statement() {
@@ -105,14 +108,23 @@ mod tests {
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
 
-        assert_eq!(program.statements, vec![
-            Statement::Let(String::from("x"),
-                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
-            Statement::Let(String::from("y"),
-                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
-            Statement::Let(String::from("foobar"),
-                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
-        ]);
+        assert_eq!(
+            program.statements,
+            vec![
+                Statement::Let(
+                    String::from("x"),
+                    Expression::Identifier(String::from("PLACEHOLDER\n"))
+                ),
+                Statement::Let(
+                    String::from("y"),
+                    Expression::Identifier(String::from("PLACEHOLDER\n"))
+                ),
+                Statement::Let(
+                    String::from("foobar"),
+                    Expression::Identifier(String::from("PLACEHOLDER\n"))
+                ),
+            ]
+        );
 
         assert_eq!(parser.errors, Vec::<String>::new());
     }

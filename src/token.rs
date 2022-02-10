@@ -40,7 +40,7 @@ pub enum Token {
     Else,
     Return,
     True,
-    False
+    False,
 }
 
 impl fmt::Display for Token {
@@ -75,7 +75,7 @@ impl fmt::Display for Token {
             Token::Else => write!(f, "else"),
             Token::Return => write!(f, "return"),
             Token::True => write!(f, "true"),
-            Token::False => write!(f, "false")
+            Token::False => write!(f, "false"),
         }
     }
 }
@@ -89,6 +89,6 @@ pub fn lookup_identifier(ident: &str) -> Token {
         "return" => Token::Return,
         "true" => Token::True,
         "false" => Token::False,
-        _ => Token::Ident(String::from(ident))
+        _ => Token::Ident(String::from(ident)),
     }
 }
