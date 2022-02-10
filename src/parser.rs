@@ -44,7 +44,8 @@ impl<'a> Parser<'a> {
     fn parse_statement(&mut self) -> Result<Statement, String> {
         match self.cur_token {
             Token::Let => self.parse_let_statement(),
-            _ => Err("p".to_string()),
+            Token::Return => self.parse_return_statement(),
+            _ => Err("".to_string()),
         }
     }
 
@@ -75,6 +76,21 @@ impl<'a> Parser<'a> {
         // current token is ';'
         self.next_token();
         Ok(Statement::Let(name, value))
+    }
+
+    fn parse_return_statement(&mut self) -> Result<Statement, String> {
+        self.next_token();
+
+        if self.cur_token == Token::Semicolon {
+            return Ok(Statement::Return(None));
+        }
+
+        // skip the Expression part for now
+        let value = Expression::Identifier("PLACEHOLDER\n".to_string());
+        while self.peek_token != Token::Semicolon {
+            self.next_token();
+        }
+        Ok(Statement::Return(Some(value)))
     }
 
     fn expect_peek(&mut self, expected: Token) -> Result<(), String> {
@@ -123,6 +139,28 @@ mod tests {
                     String::from("foobar"),
                     Expression::Identifier(String::from("PLACEHOLDER\n"))
                 ),
+            ]
+        );
+        assert_eq!(parser.errors, Vec::<String>::new());
+    }
+
+    #[test]
+    fn return_statement() {
+        let input = " 
+            return;
+            return;
+            return;";
+
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+
+        assert_eq!(
+            program.statements,
+            vec![
+                Statement::Return(None),
+                Statement::Return(None),
+                Statement::Return(None)
             ]
         );
 
