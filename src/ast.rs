@@ -18,12 +18,15 @@ impl fmt::Display for Program {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Statement {
     Let(String, Expression),
+    Return(Option<Expression>),
 }
 
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Let(name, value) => write!(f, "{} = {}", name, value),
+            Self::Let(name, value) => write!(f, "let {} = {};", name, value),
+            Self::Return(Some(value)) => write!(f, "return {};", value),
+            Self::Return(None) => write!(f, "return;"),
         };
         Ok(())
     }
