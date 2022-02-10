@@ -46,7 +46,7 @@ impl<'a> Parser<'a> {
     fn parse_statement(&mut self) -> Result<Statement, String> {
         match self.cur_token {
             Token::Let => self.parse_let_statement(),
-            _ => Err("".to_string())
+            _ => Err("p".to_string())
         }
     }
 
@@ -72,10 +72,8 @@ impl<'a> Parser<'a> {
         while self.peek_token != Token::Semicolon {
             self.next_token();
         }
-
         // current token is ';'
         self.next_token();
-
         Ok(Statement::Let(name, value))
     }
 
@@ -90,6 +88,8 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+    use crate::ast::{Expression, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
 
@@ -104,6 +104,16 @@ mod tests {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        println!("{}", program);
+
+        assert_eq!(program.statements, vec![
+            Statement::Let(String::from("x"),
+                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
+            Statement::Let(String::from("y"),
+                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
+            Statement::Let(String::from("foobar"),
+                           Expression::Identifier(String::from("PLACEHOLDER\n"))),
+        ]);
+
+        assert_eq!(parser.errors, Vec::<String>::new());
     }
 }
