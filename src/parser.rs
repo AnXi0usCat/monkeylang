@@ -3,6 +3,9 @@ use crate::lexer::Lexer;
 use crate::token::Token;
 use std::mem;
 
+type PrefixParseFn = fn(&mut Parser) -> Option<Expression>;
+type InfixParseFn = fn(&mut Parser, Expression) -> Option<Expression>;
+
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     cur_token: Token,
@@ -163,7 +166,6 @@ mod tests {
                 Statement::Return(None)
             ]
         );
-
         assert_eq!(parser.errors, Vec::<String>::new());
     }
 }
