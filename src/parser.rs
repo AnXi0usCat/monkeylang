@@ -6,6 +6,17 @@ use std::mem;
 type PrefixParseFn = fn(&mut Parser) -> Option<Expression>;
 type InfixParseFn = fn(&mut Parser, Expression) -> Option<Expression>;
 
+#[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
+enum Precedence {
+    Lowest,
+    Equals,      // ==
+    LessGreater, // > or <
+    Sum,         //+
+    Product,     //*
+    Prefix,      //-Xor!X
+    Call,        // myFunction(X)
+}
+
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
     cur_token: Token,
@@ -48,7 +59,7 @@ impl<'a> Parser<'a> {
         match self.cur_token {
             Token::Let => self.parse_let_statement(),
             Token::Return => self.parse_return_statement(),
-            _ => Err("".to_string()),
+            _ => self.parse_expression_statement(),
         }
     }
 
@@ -95,6 +106,17 @@ impl<'a> Parser<'a> {
         }
         Ok(Statement::Return(Some(value)))
     }
+
+    fn parse_expression_statement(&mut self) -> Result<Statement, String> {
+        let expression = self.parse_expression(Precedence::Lowest);
+
+        while self.peek_token != Token::Semicolon {
+            self.next_token();
+        }
+        Ok(Statement::Expression(expression))
+    }
+
+    fn parse_expression(&self, precedence: Precedence) -> Expression {}
 
     fn expect_peek(&mut self, expected: Token) -> Result<(), String> {
         if self.peek_token != expected {
@@ -166,6 +188,20 @@ mod tests {
                 Statement::Return(None)
             ]
         );
+        assert_eq!(parser.errors, Vec::<String>::new());
+    }
+
+    #[test]
+    fn identifier_expression() {
+        // GIVEN
+        let input = "foobar;";
+
+        // WHEN
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+
+        // THEN
         assert_eq!(parser.errors, Vec::<String>::new());
     }
 }
