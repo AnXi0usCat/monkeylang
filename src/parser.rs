@@ -81,7 +81,7 @@ impl<'a> Parser<'a> {
         // skip the Expression part for now
         let value = Expression::Identifier("PLACEHOLDER\n".to_string());
 
-        while self.peek_token == Token::Semicolon {
+        while self.cur_token != Token::Semicolon {
             // current token is ';'
             self.next_token();
         }
@@ -98,7 +98,7 @@ impl<'a> Parser<'a> {
 
         // skip the Expression part for now
         let value = Expression::Identifier("PLACEHOLDER\n".to_string());
-        while self.peek_token == Token::Semicolon {
+        while self.cur_token != Token::Semicolon {
             // current token is ';'
             self.next_token();
         }
@@ -108,7 +108,7 @@ impl<'a> Parser<'a> {
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
         let expression = self.parse_expression(Precedence::Lowest)?;
 
-        while self.peek_token == Token::Semicolon {
+        while self.cur_token != Token::Semicolon {
             // current token is ';'
             self.next_token();
         }
@@ -159,7 +159,7 @@ mod tests {
         let input = "
             let x = 5;
             let y = 1023;
-            let foobar = x + y;
+            let foobar = x + z;
         ";
 
         let lexer = Lexer::new(input);
