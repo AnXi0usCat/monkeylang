@@ -3,9 +3,6 @@ use crate::lexer::Lexer;
 use crate::token::Token;
 use std::mem;
 
-type PrefixParseFn = fn(&mut Parser) -> Option<Expression>;
-type InfixParseFn = fn(&mut Parser, Expression) -> Option<Expression>;
-
 #[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
 enum Precedence {
     Lowest,
@@ -84,11 +81,11 @@ impl<'a> Parser<'a> {
         // skip the Expression part for now
         let value = Expression::Identifier("PLACEHOLDER\n".to_string());
 
-        while self.peek_token != Token::Semicolon {
+        while self.peek_token == Token::Semicolon {
+            // current token is ';'
             self.next_token();
         }
-        // current token is ';'
-        self.next_token();
+
         Ok(Statement::Let(name, value))
     }
 
@@ -101,22 +98,42 @@ impl<'a> Parser<'a> {
 
         // skip the Expression part for now
         let value = Expression::Identifier("PLACEHOLDER\n".to_string());
-        while self.peek_token != Token::Semicolon {
+        while self.peek_token == Token::Semicolon {
+            // current token is ';'
             self.next_token();
         }
         Ok(Statement::Return(Some(value)))
     }
 
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
-        let expression = self.parse_expression(Precedence::Lowest);
+        let expression = self.parse_expression(Precedence::Lowest)?;
 
-        while self.peek_token != Token::Semicolon {
+        while self.peek_token == Token::Semicolon {
+            // current token is ';'
             self.next_token();
         }
         Ok(Statement::Expression(expression))
     }
 
-    fn parse_expression(&self, precedence: Precedence) -> Expression {}
+    fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
+        let infix = self.prefix_parse_fn();
+        infix
+    }
+
+    fn parse_identifier(&mut self) -> Result<Expression, String> {
+        if let Token::Ident(ident) = self.cur_token.clone() {
+            Ok(Expression::Identifier(ident))
+        } else {
+            Err(format!("Expected identifier, found {}", self.cur_token))
+        }
+    }
+
+    fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
+        match self.cur_token {
+            Token::Ident(_) => self.parse_identifier(),
+            _ => Err(format!("Expected a prefix token, got: {}", self.cur_token)),
+        }
+    }
 
     fn expect_peek(&mut self, expected: Token) -> Result<(), String> {
         if self.peek_token != expected {
