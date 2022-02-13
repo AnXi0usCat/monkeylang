@@ -218,6 +218,13 @@ mod tests {
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
 
+        assert_eq!(
+            program.statements,
+            vec![Statement::Expression(Expression::Identifier(String::from(
+                "foobar"
+            )))]
+        );
+
         // THEN
         assert_eq!(parser.errors, Vec::<String>::new());
     }
