@@ -159,7 +159,7 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{Expression, Statement};
+    use crate::ast::{Expression, Prefix, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use std::vec;
@@ -253,5 +253,13 @@ mod tests {
             vec![Statement::Expression(Expression::IntegerLiteral(5))]
         );
         assert_eq!(parser.errors, Vec::<String>::new());
+    }
+
+    #[test]
+    fn prefix_expression() {
+        let tests = vec![
+            ("!5", Prefix::Minus, Expression::IntegerLiteral(5)),
+            ("-15", Prefix::Minus, Expression::IntegerLiteral(15)),
+        ];
     }
 }
