@@ -37,12 +37,14 @@ impl fmt::Display for Statement {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
     Identifier(String),
+    IntegerLiteral(i32),
 }
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Identifier(value) => write!(f, "{}", value),
+            Self::IntegerLiteral(int) => write!(f, "{}", int),
         };
         Ok(())
     }

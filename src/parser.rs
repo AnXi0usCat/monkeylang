@@ -129,8 +129,9 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_integer_literal(&mut self) -> Result<Expression, String> {
-        if let Token::Int(int) = self.cur_token.clone() {
-            Ok(Expression::Identifier(int))
+        if let Token::Int(int_str) = self.cur_token.clone() {
+            let int = int_str.to_owned().parse::<i32>().unwrap();
+            Ok(Expression::IntegerLiteral(int))
         } else {
             Err(format!("Expected an integer, found {}", self.cur_token))
         }
@@ -249,9 +250,7 @@ mod tests {
         // THEN
         assert_eq!(
             program.statements,
-            vec![Statement::Expression(Expression::Identifier(String::from(
-                "5"
-            )))]
+            vec![Statement::Expression(Expression::IntegerLiteral(5))]
         );
         assert_eq!(parser.errors, Vec::<String>::new());
     }
