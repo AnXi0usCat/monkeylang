@@ -38,6 +38,7 @@ impl fmt::Display for Statement {
 pub enum Expression {
     Identifier(String),
     IntegerLiteral(i32),
+    PrefixExpression(Prefix, Box<Expression>),
 }
 
 impl fmt::Display for Expression {
@@ -45,6 +46,23 @@ impl fmt::Display for Expression {
         match self {
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
+            Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
+        };
+        Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Prefix {
+    Minus,
+    Bang,
+}
+
+impl fmt::Display for Prefix {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Minus => write!(f, "-"),
+            Self::Bang => write!(f, "!"),
         };
         Ok(())
     }
