@@ -128,9 +128,18 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_integer_literal(&mut self) -> Result<Expression, String> {
+        if let Token::Int(int) = self.cur_token.clone() {
+            Ok(Expression::Identifier(int))
+        } else {
+            Err(format!("Expected an integer, found {}", self.cur_token))
+        }
+    }
+
     fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
         match self.cur_token {
             Token::Ident(_) => self.parse_identifier(),
+            Token::Int(_) => self.parse_integer_literal(),
             _ => Err(format!("Expected a prefix token, got: {}", self.cur_token)),
         }
     }
@@ -218,14 +227,32 @@ mod tests {
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
 
+        // THEN
         assert_eq!(
             program.statements,
             vec![Statement::Expression(Expression::Identifier(String::from(
                 "foobar"
             )))]
         );
+        assert_eq!(parser.errors, Vec::<String>::new());
+    }
 
+    #[test]
+    fn integer_literal_expression() {
+        // GIVEN
+        let input = "5;";
+
+        // WHEN
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
         // THEN
+        assert_eq!(
+            program.statements,
+            vec![Statement::Expression(Expression::Identifier(String::from(
+                "5"
+            )))]
+        );
         assert_eq!(parser.errors, Vec::<String>::new());
     }
 }
