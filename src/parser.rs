@@ -281,14 +281,14 @@ mod tests {
         // GIVEN
         let tests = vec![
             (
-                "!5",
+                "!5;",
                 Statement::Expression(PrefixExpression(
-                    Prefix::Minus,
+                    Prefix::Bang,
                     Box::new(Expression::IntegerLiteral(5)),
                 )),
             ),
             (
-                "-15",
+                "-15;",
                 Statement::Expression(PrefixExpression(
                     Prefix::Minus,
                     Box::new(Expression::IntegerLiteral(15)),
@@ -304,6 +304,7 @@ mod tests {
 
             // THEN
             assert_eq!(program.statements, vec![pref]);
+            assert_eq!(parser.errors, Vec::<String>::new());
         }
     }
 }
