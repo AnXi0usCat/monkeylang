@@ -180,7 +180,7 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod tests {
     use crate::ast::Expression::PrefixExpression;
-    use crate::ast::{Expression, Prefix, Statement};
+    use crate::ast::{Expression, Infix, Prefix, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use std::vec;
@@ -306,5 +306,21 @@ mod tests {
             assert_eq!(program.statements, vec![pref]);
             assert_eq!(parser.errors, Vec::<String>::new());
         }
+    }
+
+    #[test]
+    fn infix_expression_integer() {
+        let tests = vec![
+            ("5 + 5;", 5, Infix::Plus, 5),
+            ("5 - 5;", 5, Infix::Minus, 5),
+            ("5 * 5;", 5, Infix::Asterisk, 5),
+            ("5 / 5;", 5, Infix::Slash, 5),
+            ("5 > 5;", 5, Infix::Gthen, 5),
+            ("5 < 5;", 5, Infix::Lthen, 5),
+            ("5 == 5;", 5, Infix::Equals, 5),
+            ("5 != 5;", 5, Infix::Nequals, 5),
+        ];
+
+        for (input, exp1, infix, exp2) in tests {}
     }
 }

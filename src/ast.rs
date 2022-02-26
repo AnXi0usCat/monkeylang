@@ -67,3 +67,35 @@ impl fmt::Display for Prefix {
         Ok(())
     }
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Infix {
+    Plus,
+    Minus,
+    Asterisk,
+    Slash,
+    Equals,
+    Gequals,
+    Lequals,
+    Nequals,
+    Gthen,
+    Lthen,
+}
+
+impl fmt::Display for Infix {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Plus => write!(f, "+"),
+            Self::Minus => write!(f, "-"),
+            Self::Asterisk => write!(f, "*"),
+            Self::Slash => write!(f, "/"),
+            Self::Equals => write!(f, "=="),
+            Self::Gequals => write!(f, ">="),
+            Self::Lequals => write!(f, "<="),
+            Self::Nequals => write!(f, "!="),
+            Self::Gthen => write!(f, ">"),
+            Self::Lthen => write!(f, "<"),
+        };
+        Ok(())
+    }
+}
