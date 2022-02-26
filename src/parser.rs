@@ -1,4 +1,5 @@
-use crate::ast::{Expression, Program, Statement};
+use crate::ast::Expression::PrefixExpression;
+use crate::ast::{Expression, Prefix, Program, Statement};
 use crate::lexer::Lexer;
 use crate::token::Token;
 use std::mem;
@@ -137,10 +138,29 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_prefix_expression(&mut self) -> Result<Expression, String> {
+        // current token should be a prefix (Minus or Bang)
+        let token = match self.cur_token {
+            Token::Minus => Ok(Prefix::Minus),
+            Token::Bang => Ok(Prefix::Bang),
+            _ => Err(format!(
+                "Expected a `-` or `!` token, got: {} instead",
+                self.cur_token
+            )),
+        }?;
+        self.next_token();
+        // current token should be the first token of the expression
+        let expression = self.parse_expression(Precedence::Prefix)?;
+
+        Ok(PrefixExpression(token, Box::new(expression)))
+    }
+
     fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
         match self.cur_token {
             Token::Ident(_) => self.parse_identifier(),
             Token::Int(_) => self.parse_integer_literal(),
+            Token::Minus => self.parse_prefix_expression(),
+            Token::Bang => self.parse_prefix_expression(),
             _ => Err(format!("Expected a prefix token, got: {}", self.cur_token)),
         }
     }
@@ -159,6 +179,7 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::ast::Expression::PrefixExpression;
     use crate::ast::{Expression, Prefix, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
@@ -257,9 +278,32 @@ mod tests {
 
     #[test]
     fn prefix_expression() {
+        // GIVEN
         let tests = vec![
-            ("!5", Prefix::Minus, Expression::IntegerLiteral(5)),
-            ("-15", Prefix::Minus, Expression::IntegerLiteral(15)),
+            (
+                "!5",
+                Statement::Expression(PrefixExpression(
+                    Prefix::Minus,
+                    Box::new(Expression::IntegerLiteral(5)),
+                )),
+            ),
+            (
+                "-15",
+                Statement::Expression(PrefixExpression(
+                    Prefix::Minus,
+                    Box::new(Expression::IntegerLiteral(15)),
+                )),
+            ),
         ];
+
+        // WHEN
+        for (input, pref) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.statements, vec![pref]);
+        }
     }
 }
