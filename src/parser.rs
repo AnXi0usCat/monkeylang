@@ -179,7 +179,7 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::Expression::PrefixExpression;
+    use crate::ast::Expression::{Identifier, InfixExpression, IntegerLiteral, PrefixExpression};
     use crate::ast::{Expression, Infix, Prefix, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
@@ -310,6 +310,7 @@ mod tests {
 
     #[test]
     fn infix_expression_integer() {
+        // GIVEN
         let tests = vec![
             ("5 + 5;", 5, Infix::Plus, 5),
             ("5 - 5;", 5, Infix::Minus, 5),
@@ -321,6 +322,21 @@ mod tests {
             ("5 != 5;", 5, Infix::Nequals, 5),
         ];
 
-        for (input, exp1, infix, exp2) in tests {}
+        for (input, exp1, infix, exp2) in tests {
+            // WHEN
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(
+                program.statements,
+                vec![Statement::Expression(InfixExpression(
+                    Box::new(IntegerLiteral(exp1)),
+                    infix,
+                    Box::new(IntegerLiteral(exp2))
+                ))]
+            );
+        }
     }
 }
