@@ -39,6 +39,7 @@ pub enum Expression {
     Identifier(String),
     IntegerLiteral(i32),
     PrefixExpression(Prefix, Box<Expression>),
+    InfixExpression(Box<Expression>, Infix, Box<Expression>),
 }
 
 impl fmt::Display for Expression {
@@ -47,6 +48,9 @@ impl fmt::Display for Expression {
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
             Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
+            Self::InfixExpression(exp1, operator, exp2) => {
+                write!(f, "({} {} {})", exp1, operator, exp2)
+            }
         };
         Ok(())
     }
