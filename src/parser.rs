@@ -155,6 +155,8 @@ impl<'a> Parser<'a> {
         Ok(PrefixExpression(token, Box::new(expression)))
     }
 
+    fn parse_infix_expression(&mut self) -> Result<Expression, String> {}
+
     fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
         match self.cur_token {
             Token::Ident(_) => self.parse_identifier(),
@@ -162,6 +164,25 @@ impl<'a> Parser<'a> {
             Token::Minus => self.parse_prefix_expression(),
             Token::Bang => self.parse_prefix_expression(),
             _ => Err(format!("Expected a prefix token, got: {}", self.cur_token)),
+        }
+    }
+
+    fn infix_parse_fn(&mut self) -> Result<Expression, String> {
+        match self.cur_token {
+            Token::Ident(_) => self.parse_infix_expression(),
+            Token::Int(_) => self.parse_infix_expression(),
+            Token::Minus => self.parse_infix_expression(),
+            Token::Plus => self.parse_infix_expression(),
+            Token::Asterisk => self.parse_infix_expression(),
+            Token::Slash => self.parse_infix_expression(),
+            Token::Nequals => self.parse_infix_expression(),
+            Token::Equals => self.parse_infix_expression(),
+            Token::Gthen => self.parse_infix_expression(),
+            Token::Lthen => self.parse_infix_expression(),
+            _ => Err(format!(
+                "Expected a in infix token, got: {}",
+                self.cur_token
+            )),
         }
     }
 
