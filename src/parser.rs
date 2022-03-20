@@ -118,8 +118,19 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
-        let infix = self.prefix_parse_fn();
-        infix
+        let left_expr = self.prefix_parse_fn()?;
+
+        while self.peek_token != Token::Semicolon
+            && precedence < self.infix_token(&self.peek_token).0
+        {
+            self.next_token();
+            if let Ok(right_expr) = self.infix_parse_fn(&left_expr) {
+                return Ok(right_expr);
+            } else {
+                return Ok(left_expr);
+            }
+        }
+        Ok(left_expr)
     }
 
     fn parse_identifier(&mut self) -> Result<Expression, String> {
@@ -159,14 +170,14 @@ impl<'a> Parser<'a> {
         Ok(PrefixExpression(token, Box::new(expression)))
     }
 
-    fn parse_infix_expression(&mut self, left: Expression) -> Result<Expression, String> {
+    fn parse_infix_expression(&mut self, left: &Expression) -> Result<Expression, String> {
         let (precedence, infix) = self.infix_token(&self.cur_token);
         let infix = infix
             .ok_or_else(|| format!("Excepted an Infix token got {} instead", self.cur_token))?;
         self.next_token();
         let right = self.parse_expression(precedence)?;
         Ok(Expression::InfixExpression(
-            Box::new(left),
+            Box::new(left.to_owned()),
             infix,
             Box::new(right),
         ))
@@ -182,7 +193,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn infix_parse_fn(&mut self, expression: Expression) -> Result<Expression, String> {
+    fn infix_parse_fn(&mut self, expression: &Expression) -> Result<Expression, String> {
         match self.cur_token {
             Token::Ident(_) => self.parse_infix_expression(expression),
             Token::Int(_) => self.parse_infix_expression(expression),
