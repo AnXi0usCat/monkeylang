@@ -135,7 +135,10 @@ impl<'a> Parser<'a> {
             let int = int_str.to_owned().parse::<i32>().unwrap();
             Ok(Expression::IntegerLiteral(int))
         } else {
-            Err(format!("Expected an integer, found {}", self.cur_token))
+            Err(format!(
+                "Expected an integer, found {} instead",
+                self.cur_token
+            ))
         }
     }
 
@@ -156,8 +159,17 @@ impl<'a> Parser<'a> {
         Ok(PrefixExpression(token, Box::new(expression)))
     }
 
-    fn parse_infix_expression(&mut self) -> Result<Expression, String> {
-        Ok((Expression::IntegerLiteral(12)))
+    fn parse_infix_expression(&mut self, left: Expression) -> Result<Expression, String> {
+        let (precedence, infix) = self.infix_token(&self.cur_token);
+        let infix = infix
+            .ok_or_else(|| format!("Excepted an Infix token got {} instead", self.cur_token))?;
+        self.next_token();
+        let right = self.parse_expression(precedence)?;
+        Ok(Expression::InfixExpression(
+            Box::new(left),
+            infix,
+            Box::new(right),
+        ))
     }
 
     fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
@@ -170,18 +182,18 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn infix_parse_fn(&mut self) -> Result<Expression, String> {
+    fn infix_parse_fn(&mut self, expression: Expression) -> Result<Expression, String> {
         match self.cur_token {
-            Token::Ident(_) => self.parse_infix_expression(),
-            Token::Int(_) => self.parse_infix_expression(),
-            Token::Minus => self.parse_infix_expression(),
-            Token::Plus => self.parse_infix_expression(),
-            Token::Asterisk => self.parse_infix_expression(),
-            Token::Slash => self.parse_infix_expression(),
-            Token::Nequals => self.parse_infix_expression(),
-            Token::Equals => self.parse_infix_expression(),
-            Token::Gthen => self.parse_infix_expression(),
-            Token::Lthen => self.parse_infix_expression(),
+            Token::Ident(_) => self.parse_infix_expression(expression),
+            Token::Int(_) => self.parse_infix_expression(expression),
+            Token::Minus => self.parse_infix_expression(expression),
+            Token::Plus => self.parse_infix_expression(expression),
+            Token::Asterisk => self.parse_infix_expression(expression),
+            Token::Slash => self.parse_infix_expression(expression),
+            Token::Nequals => self.parse_infix_expression(expression),
+            Token::Equals => self.parse_infix_expression(expression),
+            Token::Gthen => self.parse_infix_expression(expression),
+            Token::Lthen => self.parse_infix_expression(expression),
             _ => Err(format!(
                 "Expected a in infix token, got: {}",
                 self.cur_token
@@ -189,7 +201,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn infix_token(&mut self, token: Token) -> (Precedence, Option<Infix>) {
+    fn infix_token(&self, token: &Token) -> (Precedence, Option<Infix>) {
         match token {
             Token::Equals => (Precedence::Equals, Some(Infix::Equals)),
             Token::Nequals => (Precedence::Equals, Some(Infix::Nequals)),
