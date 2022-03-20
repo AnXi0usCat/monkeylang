@@ -81,7 +81,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         // current token is expression after '='
         // skip the Expression part for now
-        let value = Expression::Identifier("PLACEHOLDER\n".to_string());
+        let value = self.parse_expression(Precedence::Lowest)?;
 
         while self.cur_token != Token::Semicolon {
             // current token is ';'
@@ -99,7 +99,7 @@ impl<'a> Parser<'a> {
         }
 
         // skip the Expression part for now
-        let value = Expression::Identifier("PLACEHOLDER\n".to_string());
+        let value = self.parse_expression(Precedence::Lowest)?;
         while self.cur_token != Token::Semicolon {
             // current token is ';'
             self.next_token();
@@ -124,11 +124,11 @@ impl<'a> Parser<'a> {
             && precedence < self.infix_token(&self.peek_token).0
         {
             self.next_token();
-            if let Ok(right_expr) = self.infix_parse_fn(&left_expr) {
-                return Ok(right_expr);
+            return if let Ok(right_expr) = self.infix_parse_fn(&left_expr) {
+                Ok(right_expr)
             } else {
-                return Ok(left_expr);
-            }
+                Ok(left_expr)
+            };
         }
         Ok(left_expr)
     }
@@ -261,17 +261,15 @@ mod tests {
         assert_eq!(
             program.statements,
             vec![
-                Statement::Let(
-                    String::from("x"),
-                    Expression::Identifier(String::from("PLACEHOLDER\n"))
-                ),
-                Statement::Let(
-                    String::from("y"),
-                    Expression::Identifier(String::from("PLACEHOLDER\n"))
-                ),
+                Statement::Let(String::from("x"), Expression::IntegerLiteral(5)),
+                Statement::Let(String::from("y"), Expression::IntegerLiteral(1023)),
                 Statement::Let(
                     String::from("foobar"),
-                    Expression::Identifier(String::from("PLACEHOLDER\n"))
+                    Expression::InfixExpression(
+                        Box::new(Identifier(String::from("x"))),
+                        Infix::Plus,
+                        Box::new(Identifier(String::from("z")))
+                    )
                 ),
             ]
         );
