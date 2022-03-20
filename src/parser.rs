@@ -1,6 +1,7 @@
 use crate::ast::Expression::PrefixExpression;
-use crate::ast::{Expression, Prefix, Program, Statement};
+use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::lexer::Lexer;
+use crate::parser::Precedence::Lowest;
 use crate::token::Token;
 use std::mem;
 
@@ -155,7 +156,9 @@ impl<'a> Parser<'a> {
         Ok(PrefixExpression(token, Box::new(expression)))
     }
 
-    fn parse_infix_expression(&mut self) -> Result<Expression, String> {}
+    fn parse_infix_expression(&mut self) -> Result<Expression, String> {
+        Ok((Expression::IntegerLiteral(12)))
+    }
 
     fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
         match self.cur_token {
@@ -183,6 +186,20 @@ impl<'a> Parser<'a> {
                 "Expected a in infix token, got: {}",
                 self.cur_token
             )),
+        }
+    }
+
+    fn infix_token(&mut self, token: Token) -> (Precedence, Option<Infix>) {
+        match token {
+            Token::Equals => (Precedence::Equals, Some(Infix::Equals)),
+            Token::Nequals => (Precedence::Equals, Some(Infix::Nequals)),
+            Token::Lthen => (Precedence::LessGreater, Some(Infix::Lthen)),
+            Token::Gthen => (Precedence::LessGreater, Some(Infix::Gthen)),
+            Token::Plus => (Precedence::Sum, Some(Infix::Plus)),
+            Token::Minus => (Precedence::Sum, Some(Infix::Minus)),
+            Token::Slash => (Precedence::Product, Some(Infix::Slash)),
+            Token::Asterisk => (Precedence::Product, Some(Infix::Asterisk)),
+            _ => (Precedence::Lowest, None),
         }
     }
 
