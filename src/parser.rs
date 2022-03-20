@@ -279,8 +279,8 @@ mod tests {
     #[test]
     fn return_statement() {
         let input = " 
-            return;
-            return;
+            return 12;
+            return 1204;
             return;";
 
         let lexer = Lexer::new(input);
@@ -290,8 +290,8 @@ mod tests {
         assert_eq!(
             program.statements,
             vec![
-                Statement::Return(None),
-                Statement::Return(None),
+                Statement::Return(Some(IntegerLiteral(12))),
+                Statement::Return(Some(IntegerLiteral(1204))),
                 Statement::Return(None)
             ]
         );
@@ -396,6 +396,81 @@ mod tests {
                     Box::new(IntegerLiteral(exp2))
                 ))]
             );
+        }
+    }
+
+    #[test]
+    fn operator_precedence() {
+        // GIVEN
+        let tests = vec![
+            ("-a * b", "((-a) * b);"),
+            ("!-a", "(!(-a));"),
+            ("a + b + c", "((a + b) + c);"),
+            ("a + b - c", "((a + b) - c);"),
+            ("a * b * c", "((a * b) * c);"),
+            ("a * b / c", "((a * b) / c);"),
+            ("a + b / c", "(a + (b / c));"),
+            ("a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f);"),
+            ("3 + 4; -5 * 5", "(3 + 4);((-5) * 5);"),
+            ("5 > 4 == 3 < 4", "((5 > 4) == (3 < 4));"),
+            ("5 < 4 != 3 > 4", "((5 < 4) != (3 > 4));"),
+            (
+                "3 + 4 * 5 == 3 * 1 + 4 * 5",
+                "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
+            ),
+            ("true", "true;"),
+            ("false", "false;"),
+            ("3 > 5 == false", "((3 > 5) == false);"),
+            ("3 < 5 == true", "((3 < 5) == true);"),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4);"),
+            ("(5 + 5) * 2", "((5 + 5) * 2);"),
+            ("2 / (5 + 5)", "(2 / (5 + 5));"),
+            ("-(5 + 5)", "(-(5 + 5));"),
+            ("!(true == true)", "(!(true == true));"),
+            ("if (x < y) { x }", "if (x < y) { x; };"),
+            (
+                "if (x < y) { x } else { y }",
+                "if (x < y) { x; } else { y; };",
+            ),
+            ("return x", "return x;"),
+            ("return x return 2 * 3", "return x;return (2 * 3);"),
+            ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
+            ("fn() { 3 * 9; }", "fn() { (3 * 9); };"),
+            ("fn(x) { x * 9; }", "fn(x) { (x * 9); };"),
+            ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
+            ("call()", "call();"),
+            ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
+            ("a + add(b * c) + d", "((a + add((b * c))) + d);"),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g));",
+            ),
+            ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4);"),
+            ("let x = 3", "let x = 3;"),
+            ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
+            ("\"hello world\"", "\"hello world\";"),
+            ("let s = \"hello world\"", "let s = \"hello world\";"),
+            (
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d);",
+            ),
+            (
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])));",
+            ),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.to_string(), expected);
         }
     }
 }
