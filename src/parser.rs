@@ -83,9 +83,9 @@ impl<'a> Parser<'a> {
         // skip the Expression part for now
         let value = self.parse_expression(Precedence::Lowest)?;
 
-        while self.cur_token != Token::Semicolon {
-            // current token is ';'
+        if self.peek_token == Token::Semicolon {
             self.next_token();
+            // cur_token: ;
         }
 
         Ok(Statement::Let(name, value))
@@ -97,12 +97,10 @@ impl<'a> Parser<'a> {
         if self.cur_token == Token::Semicolon {
             return Ok(Statement::Return(None));
         }
-
-        // skip the Expression part for now
         let value = self.parse_expression(Precedence::Lowest)?;
-        while self.cur_token != Token::Semicolon {
-            // current token is ';'
+        if self.peek_token == Token::Semicolon {
             self.next_token();
+            // cur_token: ;
         }
         Ok(Statement::Return(Some(value)))
     }
@@ -110,9 +108,9 @@ impl<'a> Parser<'a> {
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
         let expression = self.parse_expression(Precedence::Lowest)?;
 
-        while self.cur_token != Token::Semicolon {
-            // current token is ';'
+        if self.peek_token == Token::Semicolon {
             self.next_token();
+            // cur_token: ;
         }
         Ok(Statement::Expression(expression))
     }
