@@ -5,6 +5,8 @@ use crate::parser::Precedence::Lowest;
 use crate::token::Token;
 use std::mem;
 
+type InfixParseFn = fn(&mut Parser, Expression) -> Result<Expression, String>;
+
 #[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
 enum Precedence {
     Lowest,
@@ -116,16 +118,16 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
-        let left_expr = self.prefix_parse_fn()?;
+        let mut left_expr = self.prefix_parse_fn()?;
 
         while self.peek_token != Token::Semicolon
             && precedence < self.infix_token(&self.peek_token).0
         {
-            self.next_token();
-            return if let Ok(right_expr) = self.infix_parse_fn(&left_expr) {
-                Ok(right_expr)
+            if let Some(infix) = self.infix_parse_fn() {
+                self.next_token();
+                left_expr = infix(self, left_expr)?;
             } else {
-                Ok(left_expr)
+                return Ok(left_expr);
             };
         }
         Ok(left_expr)
@@ -168,14 +170,14 @@ impl<'a> Parser<'a> {
         Ok(PrefixExpression(token, Box::new(expression)))
     }
 
-    fn parse_infix_expression(&mut self, left: &Expression) -> Result<Expression, String> {
+    fn parse_infix_expression(&mut self, left: Expression) -> Result<Expression, String> {
         let (precedence, infix) = self.infix_token(&self.cur_token);
         let infix = infix
             .ok_or_else(|| format!("Excepted an Infix token got {} instead", self.cur_token))?;
         self.next_token();
         let right = self.parse_expression(precedence)?;
         Ok(Expression::InfixExpression(
-            Box::new(left.to_owned()),
+            Box::new(left),
             infix,
             Box::new(right),
         ))
@@ -191,22 +193,19 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn infix_parse_fn(&mut self, expression: &Expression) -> Result<Expression, String> {
-        match self.cur_token {
-            Token::Ident(_) => self.parse_infix_expression(expression),
-            Token::Int(_) => self.parse_infix_expression(expression),
-            Token::Minus => self.parse_infix_expression(expression),
-            Token::Plus => self.parse_infix_expression(expression),
-            Token::Asterisk => self.parse_infix_expression(expression),
-            Token::Slash => self.parse_infix_expression(expression),
-            Token::Nequals => self.parse_infix_expression(expression),
-            Token::Equals => self.parse_infix_expression(expression),
-            Token::Gthen => self.parse_infix_expression(expression),
-            Token::Lthen => self.parse_infix_expression(expression),
-            _ => Err(format!(
-                "Expected a in infix token, got: {}",
-                self.cur_token
-            )),
+    fn infix_parse_fn(&mut self) -> Option<InfixParseFn> {
+        match self.peek_token {
+            Token::Ident(_) => Some(Parser::parse_infix_expression),
+            Token::Int(_) => Some(Parser::parse_infix_expression),
+            Token::Minus => Some(Parser::parse_infix_expression),
+            Token::Plus => Some(Parser::parse_infix_expression),
+            Token::Asterisk => Some(Parser::parse_infix_expression),
+            Token::Slash => Some(Parser::parse_infix_expression),
+            Token::Nequals => Some(Parser::parse_infix_expression),
+            Token::Equals => Some(Parser::parse_infix_expression),
+            Token::Gthen => Some(Parser::parse_infix_expression),
+            Token::Lthen => Some(Parser::parse_infix_expression),
+            _ => None,
         }
     }
 
