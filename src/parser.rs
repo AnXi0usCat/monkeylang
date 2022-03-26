@@ -5,7 +5,7 @@ use crate::parser::Precedence::Lowest;
 use crate::token::Token;
 use std::mem;
 
-type InfixParseFn = fn(&mut Parser, Expression) -> Result<Expression, String>;
+type InfixParseFn<'a> = fn(&mut Parser<'a>, Expression) -> Result<Expression, String>;
 
 #[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
 enum Precedence {
@@ -193,18 +193,18 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn infix_parse_fn(&mut self) -> Option<InfixParseFn> {
+    fn infix_parse_fn(&mut self) -> Option<InfixParseFn<'a>> {
         match self.peek_token {
-            Token::Ident(_) => Some(Parser::parse_infix_expression),
-            Token::Int(_) => Some(Parser::parse_infix_expression),
-            Token::Minus => Some(Parser::parse_infix_expression),
-            Token::Plus => Some(Parser::parse_infix_expression),
-            Token::Asterisk => Some(Parser::parse_infix_expression),
-            Token::Slash => Some(Parser::parse_infix_expression),
-            Token::Nequals => Some(Parser::parse_infix_expression),
-            Token::Equals => Some(Parser::parse_infix_expression),
-            Token::Gthen => Some(Parser::parse_infix_expression),
-            Token::Lthen => Some(Parser::parse_infix_expression),
+            Token::Ident(_) => Some(Self::parse_infix_expression),
+            Token::Int(_) => Some(Self::parse_infix_expression),
+            Token::Minus => Some(Self::parse_infix_expression),
+            Token::Plus => Some(Self::parse_infix_expression),
+            Token::Asterisk => Some(Self::parse_infix_expression),
+            Token::Slash => Some(Self::parse_infix_expression),
+            Token::Nequals => Some(Self::parse_infix_expression),
+            Token::Equals => Some(Self::parse_infix_expression),
+            Token::Gthen => Some(Self::parse_infix_expression),
+            Token::Lthen => Some(Self::parse_infix_expression),
             _ => None,
         }
     }
