@@ -157,6 +157,17 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn parse_boolean(&mut self) -> Result<Expression, String> {
+        match self.cur_token {
+            Token::True => Ok(Expression::Boolean(true)),
+            Token::False => Ok(Expression::Boolean(false)),
+            _ => Err(format!(
+                "Expected a Boolean, got {} instead",
+                self.cur_token
+            )),
+        }
+    }
+
     fn parse_prefix_expression(&mut self) -> Result<Expression, String> {
         // current token should be a prefix (Minus or Bang)
         let token = match self.cur_token {
@@ -193,6 +204,8 @@ impl<'a> Parser<'a> {
             Token::Int(_) => Some(Self::parse_integer_literal),
             Token::Minus => Some(Self::parse_prefix_expression),
             Token::Bang => Some(Self::parse_prefix_expression),
+            Token::True => Some(Self::parse_boolean),
+            Token::False => Some(Self::parse_boolean),
             _ => None,
         }
     }
@@ -401,6 +414,25 @@ mod tests {
     }
 
     #[test]
+    fn boolean_expression() {
+        let tests = vec![
+            ("true", "true;"),
+            ("false", "false;"),
+            ("3 > 5 == false", "((3 > 5) == false);"),
+            ("3 < 5 == true", "((3 < 5) == true);"),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.to_string(), expected);
+        }
+    }
+
+    #[test]
     fn operator_precedence() {
         // GIVEN
         let tests = vec![
@@ -419,10 +451,6 @@ mod tests {
                 "3 + 4 * 5 == 3 * 1 + 4 * 5",
                 "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
             ),
-            // ("true", "true;"),
-            // ("false", "false;"),
-            // ("3 > 5 == false", "((3 > 5) == false);"),
-            // ("3 < 5 == true", "((3 < 5) == true);"),
             // ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4);"),
             // ("(5 + 5) * 2", "((5 + 5) * 2);"),
             // ("2 / (5 + 5)", "(2 / (5 + 5));"),
