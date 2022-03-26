@@ -254,7 +254,9 @@ impl<'a> Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::Expression::{Identifier, InfixExpression, IntegerLiteral, PrefixExpression};
+    use crate::ast::Expression::{
+        Boolean, Identifier, InfixExpression, IntegerLiteral, PrefixExpression,
+    };
     use crate::ast::{Expression, Infix, Prefix, Statement};
     use crate::lexer::Lexer;
     use crate::parser::Parser;
@@ -415,6 +417,33 @@ mod tests {
 
     #[test]
     fn boolean_expression() {
+        // GIVEN
+        let tests = vec![
+            ("true == true", true, Infix::Equals, true),
+            ("true != false", true, Infix::Nequals, false),
+            ("false == false", false, Infix::Equals, false),
+        ];
+        // WHEN
+        for (input, exp1, infix, exp2) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(
+                program.statements,
+                vec![Statement::Expression(InfixExpression(
+                    Box::new(Boolean(exp1)),
+                    infix,
+                    Box::new(Boolean(exp2))
+                ))]
+            );
+        }
+    }
+
+    #[test]
+    fn boolean_expression_precedence() {
+        // GIVEN
         let tests = vec![
             ("true", "true;"),
             ("false", "false;"),
