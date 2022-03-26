@@ -40,6 +40,7 @@ pub enum Expression {
     IntegerLiteral(i32),
     PrefixExpression(Prefix, Box<Expression>),
     InfixExpression(Box<Expression>, Infix, Box<Expression>),
+    Boolean(bool),
 }
 
 impl fmt::Display for Expression {
@@ -51,6 +52,7 @@ impl fmt::Display for Expression {
             Self::InfixExpression(exp1, operator, exp2) => {
                 write!(f, "({} {} {})", exp1, operator, exp2)
             }
+            Self::Boolean(value) => write!(f, "{}", value),
         };
         Ok(())
     }
