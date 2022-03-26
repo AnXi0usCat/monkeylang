@@ -5,6 +5,7 @@ use crate::parser::Precedence::Lowest;
 use crate::token::Token;
 use std::mem;
 
+type PrefixParseFn<'a> = fn(&mut Parser<'a>) -> Result<Expression, String>;
 type InfixParseFn<'a> = fn(&mut Parser<'a>, Expression) -> Result<Expression, String>;
 
 #[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
@@ -118,7 +119,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
-        let mut left_expr = self.prefix_parse_fn()?;
+        let prefix = self
+            .prefix_parse_fn()
+            .ok_or_else(|| format!("Expected a prefix token, got: {}", self.peek_token))?;
+        let mut left_expr = prefix(self)?;
 
         while self.peek_token != Token::Semicolon
             && precedence < self.infix_token(&self.peek_token).0
@@ -183,17 +187,17 @@ impl<'a> Parser<'a> {
         ))
     }
 
-    fn prefix_parse_fn(&mut self) -> Result<Expression, String> {
+    fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
-            Token::Ident(_) => self.parse_identifier(),
-            Token::Int(_) => self.parse_integer_literal(),
-            Token::Minus => self.parse_prefix_expression(),
-            Token::Bang => self.parse_prefix_expression(),
-            _ => Err(format!("Expected a prefix token, got: {}", self.cur_token)),
+            Token::Ident(_) => Some(Self::parse_identifier),
+            Token::Int(_) => Some(Self::parse_integer_literal),
+            Token::Minus => Some(Self::parse_prefix_expression),
+            Token::Bang => Some(Self::parse_prefix_expression),
+            _ => None,
         }
     }
 
-    fn infix_parse_fn(&mut self) -> Option<InfixParseFn<'a>> {
+    fn infix_parse_fn(&self) -> Option<InfixParseFn<'a>> {
         match self.peek_token {
             Token::Ident(_) => Some(Self::parse_infix_expression),
             Token::Int(_) => Some(Self::parse_infix_expression),
