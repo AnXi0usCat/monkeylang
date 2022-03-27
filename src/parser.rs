@@ -494,11 +494,6 @@ mod tests {
             ("2 / (5 + 5)", "(2 / (5 + 5));"),
             ("-(5 + 5)", "(-(5 + 5));"),
             ("!(true == true)", "(!(true == true));"),
-            // ("if (x < y) { x }", "if (x < y) { x; };"),
-            // (
-            //     "if (x < y) { x } else { y }",
-            //     "if (x < y) { x; } else { y; };",
-            // ),
             // ("return x", "return x;"),
             // ("return x return 2 * 3", "return x;return (2 * 3);"),
             // ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
@@ -529,6 +524,27 @@ mod tests {
             //     "add(a * b[2], b[1], 2 * [1, 2][1])",
             //     "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])));",
             // ),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn if_expression() {
+        // GIVEN
+        let tests = vec![
+            ("if (x < y) { x }", "if (x < y) { x; };"),
+            (
+                "if (x < y) { x } else { y }",
+                "if (x < y) { x; } else { y; };",
+            ),
         ];
         // WHEN
         for (input, expected) in tests {
