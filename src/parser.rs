@@ -1,4 +1,6 @@
+use crate::ast::BlockStatement;
 use crate::ast::Expression::PrefixExpression;
+use crate::ast::Statement::Expression;
 use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::lexer::Lexer;
 use crate::parser::Precedence::Lowest;
@@ -119,6 +121,8 @@ impl<'a> Parser<'a> {
         Ok(Statement::Expression(expression))
     }
 
+    fn parse_block_statement() -> BlockStatement {}
+
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         let prefix = self
             .prefix_parse_fn()
@@ -143,6 +147,18 @@ impl<'a> Parser<'a> {
         let expression = self.parse_expression(Precedence::Lowest)?;
         self.expect_peek(Token::Rparen)?;
         Ok(expression)
+    }
+
+    fn parse_if_expression(&mut self) -> Result<Expression, String> {
+        self.expect_peek(Token::Rparen)?;
+        self.next_token();
+
+        let condition = self.parse_expression(Precedence::Lowest)?;
+        self.expect_peek(Token::Lparen)?;
+        self.expect_peek(Token::Lbrace)?;
+
+        let consequence = self.parse_block_statement();
+        Ok(Expression::If(condition, consequence, None))
     }
 
     fn parse_identifier(&mut self) -> Result<Expression, String> {
@@ -215,6 +231,7 @@ impl<'a> Parser<'a> {
             Token::True => Some(Self::parse_boolean),
             Token::False => Some(Self::parse_boolean),
             Token::Lparen => Some(Self::parse_grouped_expression),
+            Token::If => Some(Self::parse_if_expression),
             _ => None,
         }
     }
