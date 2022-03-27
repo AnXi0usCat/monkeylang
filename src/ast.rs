@@ -9,7 +9,7 @@ pub struct Program {
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for statement in &self.statements {
-            write!(f, "{}", statement);
+            write!(f, "{}", statement)?;
         }
         Ok(())
     }
@@ -41,6 +41,7 @@ pub enum Expression {
     PrefixExpression(Prefix, Box<Expression>),
     InfixExpression(Box<Expression>, Infix, Box<Expression>),
     Boolean(bool),
+    If(Box<Expression>, BlockStatement, Option<BlockStatement>),
 }
 
 impl fmt::Display for Expression {
@@ -53,6 +54,13 @@ impl fmt::Display for Expression {
                 write!(f, "({} {} {})", exp1, operator, exp2)
             }
             Self::Boolean(value) => write!(f, "{}", value),
+            Self::If(condition, consequence, alternative) => {
+                write!(f, "if {} {}", condition, consequence)?;
+                if alternative.is_some() {
+                    write!(f, "else {}", alternative.as_ref().unwrap())?;
+                }
+                Ok(())
+            }
         };
         Ok(())
     }
@@ -102,6 +110,20 @@ impl fmt::Display for Infix {
             Self::Gthen => write!(f, ">"),
             Self::Lthen => write!(f, "<"),
         };
+        Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+struct BlockStatement {
+    pub statements: Vec<Statement>,
+}
+
+impl fmt::Display for BlockStatement {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for statement in &self.statements {
+            write!(f, "{{ {} }}", statement)?;
+        }
         Ok(())
     }
 }
