@@ -115,7 +115,7 @@ impl fmt::Display for Infix {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-struct BlockStatement {
+pub struct BlockStatement {
     pub statements: Vec<Statement>,
 }
 
