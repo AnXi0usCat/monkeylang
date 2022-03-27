@@ -121,7 +121,7 @@ impl<'a> Parser<'a> {
         Ok(Statement::Expression(expression))
     }
 
-    fn parse_block_statement() -> BlockStatement {}
+    fn parse_block_statement(&mut self) -> Result<BlockStatement, Stirng> {}
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         let prefix = self
@@ -157,8 +157,16 @@ impl<'a> Parser<'a> {
         self.expect_peek(Token::Lparen)?;
         self.expect_peek(Token::Lbrace)?;
 
-        let consequence = self.parse_block_statement();
-        Ok(Expression::If(condition, consequence, None))
+        let consequence = self.parse_block_statement()?;
+
+        let alternative = if self.peek_token == Token::Else {
+            self.next_token();
+            self.expect_peek(Token::Lbrace)?;
+            Some(self.parse_block_statement()()?)
+        } else {
+            None
+        };
+        Ok(Expression::If(condition, consequence, alternative))
     }
 
     fn parse_identifier(&mut self) -> Result<Expression, String> {
