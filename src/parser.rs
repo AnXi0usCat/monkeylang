@@ -3,6 +3,7 @@ use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::lexer::Lexer;
 use crate::parser::Precedence::Lowest;
 use crate::token::Token;
+use std::fmt::format;
 use std::mem;
 
 type PrefixParseFn<'a> = fn(&mut Parser<'a>) -> Result<Expression, String>;
@@ -137,6 +138,13 @@ impl<'a> Parser<'a> {
         Ok(left_expr)
     }
 
+    fn parse_grouped_expression(&mut self) -> Result<Expression, String> {
+        self.next_token();
+        let expression = self.parse_expression(Precedence::Lowest)?;
+        self.expect_peek(Token::Rparen)?;
+        Ok(expression)
+    }
+
     fn parse_identifier(&mut self) -> Result<Expression, String> {
         if let Token::Ident(ident) = self.cur_token.clone() {
             Ok(Expression::Identifier(ident))
@@ -206,6 +214,7 @@ impl<'a> Parser<'a> {
             Token::Bang => Some(Self::parse_prefix_expression),
             Token::True => Some(Self::parse_boolean),
             Token::False => Some(Self::parse_boolean),
+            Token::Lparen => Some(Self::parse_grouped_expression),
             _ => None,
         }
     }
@@ -480,11 +489,11 @@ mod tests {
                 "3 + 4 * 5 == 3 * 1 + 4 * 5",
                 "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
             ),
-            // ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4);"),
-            // ("(5 + 5) * 2", "((5 + 5) * 2);"),
-            // ("2 / (5 + 5)", "(2 / (5 + 5));"),
-            // ("-(5 + 5)", "(-(5 + 5));"),
-            // ("!(true == true)", "(!(true == true));"),
+            ("1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4);"),
+            ("(5 + 5) * 2", "((5 + 5) * 2);"),
+            ("2 / (5 + 5)", "(2 / (5 + 5));"),
+            ("-(5 + 5)", "(-(5 + 5));"),
+            ("!(true == true)", "(!(true == true));"),
             // ("if (x < y) { x }", "if (x < y) { x; };"),
             // (
             //     "if (x < y) { x } else { y }",
