@@ -86,7 +86,6 @@ impl<'a> Parser<'a> {
 
         self.next_token();
         // current token is expression after '='
-        // skip the Expression part for now
         let value = self.parse_expression(Precedence::Lowest)?;
 
         if self.peek_token == Token::Semicolon {
