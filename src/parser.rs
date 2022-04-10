@@ -1,6 +1,4 @@
 use crate::ast::BlockStatement;
-use crate::ast::Expression::PrefixExpression;
-use crate::ast::Statement::Expression;
 use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::lexer::Lexer;
 use crate::parser::Precedence::Lowest;
@@ -120,7 +118,15 @@ impl<'a> Parser<'a> {
         Ok(Statement::Expression(expression))
     }
 
-    fn parse_block_statement(&mut self) -> Result<BlockStatement, Stirng> {}
+    fn parse_block_statement(&mut self) -> Result<BlockStatement, String> {
+        let mut statements = vec![];
+        self.next_token();
+        while self.cur_token != Token::Rbrace && self.cur_token != Token::Eof {
+            statements.push(self.parse_statement()?);
+            self.next_token();
+        }
+        return Ok(BlockStatement { statements });
+    }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         let prefix = self
@@ -161,11 +167,15 @@ impl<'a> Parser<'a> {
         let alternative = if self.peek_token == Token::Else {
             self.next_token();
             self.expect_peek(Token::Lbrace)?;
-            Some(self.parse_block_statement()()?)
+            Some(self.parse_block_statement()?)
         } else {
             None
         };
-        Ok(Expression::If(condition, consequence, alternative))
+        Ok(Expression::If(
+            Box::new(condition),
+            consequence,
+            alternative,
+        ))
     }
 
     fn parse_identifier(&mut self) -> Result<Expression, String> {
@@ -213,7 +223,7 @@ impl<'a> Parser<'a> {
         // current token should be the first token of the expression
         let expression = self.parse_expression(Precedence::Prefix)?;
 
-        Ok(PrefixExpression(token, Box::new(expression)))
+        Ok(Expression::PrefixExpression(token, Box::new(expression)))
     }
 
     fn parse_infix_expression(&mut self, left: Expression) -> Result<Expression, String> {
