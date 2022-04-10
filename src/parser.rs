@@ -263,6 +263,8 @@ impl<'a> Parser<'a> {
             self.next_token();
             identifiers.push(self.parse_identifier()?.to_string());
         }
+
+        self.expect_peek(Token::Rparen)?;
         Ok(identifiers)
     }
 
@@ -561,7 +563,7 @@ mod tests {
             ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
             ("fn() { 3 * 9; }", "fn() { (3 * 9); };"),
             ("fn(x) { x * 9; }", "fn(x) { (x * 9); };"),
-            // ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
+            ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
             // ("call()", "call();"),
             // ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
             // ("a + add(b * c) + d", "((a + add((b * c))) + d);"),
