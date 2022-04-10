@@ -247,7 +247,24 @@ impl<'a> Parser<'a> {
         return Ok(Expression::FunctionLiteral(parameters, body));
     }
 
-    fn parse_function_parameters(&self) -> Result<Vec<String>, String> {}
+    fn parse_function_parameters(&mut self) -> Result<Vec<String>, String> {
+        let mut identifiers: Vec<String> = vec![];
+
+        if self.peek_token == Token::Rparen {
+            self.next_token();
+            return Ok(identifiers);
+        }
+
+        self.next_token();
+        identifiers.push(self.parse_identifier()?.to_string());
+
+        while self.peek_token == Token::Comma {
+            self.next_token();
+            self.next_token();
+            identifiers.push(self.parse_identifier()?.to_string());
+        }
+        Ok(identifiers)
+    }
 
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
@@ -259,7 +276,7 @@ impl<'a> Parser<'a> {
             Token::False => Some(Self::parse_boolean),
             Token::Lparen => Some(Self::parse_grouped_expression),
             Token::If => Some(Self::parse_if_expression),
-            Token::Function => SOme(Self::parse_function_literal),
+            Token::Function => Some(Self::parse_function_literal),
             _ => None,
         }
     }
@@ -539,11 +556,11 @@ mod tests {
             ("2 / (5 + 5)", "(2 / (5 + 5));"),
             ("-(5 + 5)", "(-(5 + 5));"),
             ("!(true == true)", "(!(true == true));"),
-            // ("return x", "return x;"),
-            // ("return x return 2 * 3", "return x;return (2 * 3);"),
-            // ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
-            // ("fn() { 3 * 9; }", "fn() { (3 * 9); };"),
-            // ("fn(x) { x * 9; }", "fn(x) { (x * 9); };"),
+            ("return x", "return x;"),
+            ("return x return 2 * 3", "return x;return (2 * 3);"),
+            ("return 2 * 4 + 5;", "return ((2 * 4) + 5);"),
+            ("fn() { 3 * 9; }", "fn() { (3 * 9); };"),
+            ("fn(x) { x * 9; }", "fn(x) { (x * 9); };"),
             // ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
             // ("call()", "call();"),
             // ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
