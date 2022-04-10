@@ -239,6 +239,16 @@ impl<'a> Parser<'a> {
         ))
     }
 
+    fn parse_function_literal(&mut self) -> Result<Expression, String> {
+        self.expect_peek(Token::Lparen)?;
+        let parameters = self.parse_function_parameters()?;
+        self.expect_peek(Token::Lbrace)?;
+        let body = self.parse_block_statement()?;
+        return Ok(Expression::FunctionLiteral(parameters, body));
+    }
+
+    fn parse_function_parameters(&self) -> Result<Vec<String>, String> {}
+
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
             Token::Ident(_) => Some(Self::parse_identifier),
@@ -249,6 +259,7 @@ impl<'a> Parser<'a> {
             Token::False => Some(Self::parse_boolean),
             Token::Lparen => Some(Self::parse_grouped_expression),
             Token::If => Some(Self::parse_if_expression),
+            Token::Function => SOme(Self::parse_function_literal),
             _ => None,
         }
     }
