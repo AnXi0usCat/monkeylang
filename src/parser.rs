@@ -247,6 +247,11 @@ impl<'a> Parser<'a> {
         return Ok(Expression::FunctionLiteral(parameters, body));
     }
 
+    fn parse_call_expression(&mut self, function: Expression) -> Result<Expression, String> {
+        let args = self.parse_call_arguments()?;
+        Ok(Expression::Call(Box::new(function), args))
+    }
+
     fn parse_function_parameters(&mut self) -> Result<Vec<String>, String> {
         let mut identifiers: Vec<String> = vec![];
 
@@ -266,6 +271,25 @@ impl<'a> Parser<'a> {
 
         self.expect_peek(Token::Rparen)?;
         Ok(identifiers)
+    }
+
+    fn parse_call_arguments(&mut self) -> Result<Vec<Expression>, String> {
+        let mut args: Vec<Expression> = vec![];
+
+        if self.peek_token == Token::Rparen {
+            self.next_token();
+            return Ok(args);
+        }
+        self.next_token();
+        args.push(self.parse_expression(Precedence::Lowest)?);
+
+        while self.peek_token == Token::Comma {
+            self.next_token();
+            self.next_token();
+            args.push(self.parse_expression(Precedence::Lowest)?);
+        }
+        self.expect_peek(Token::Rparen)?;
+        Ok(args)
     }
 
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
@@ -295,6 +319,7 @@ impl<'a> Parser<'a> {
             Token::Equals => Some(Self::parse_infix_expression),
             Token::Gthen => Some(Self::parse_infix_expression),
             Token::Lthen => Some(Self::parse_infix_expression),
+            Token::Lparen => Some(Self::parse_call_expression),
             _ => None,
         }
     }
@@ -564,8 +589,8 @@ mod tests {
             ("fn() { 3 * 9; }", "fn() { (3 * 9); };"),
             ("fn(x) { x * 9; }", "fn(x) { (x * 9); };"),
             ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
-            // ("call()", "call();"),
-            // ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
+            ("call()", "call();"),
+            ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
             // ("a + add(b * c) + d", "((a + add((b * c))) + d);"),
             // (
             //     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
