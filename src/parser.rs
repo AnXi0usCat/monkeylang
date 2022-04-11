@@ -334,6 +334,7 @@ impl<'a> Parser<'a> {
             Token::Minus => (Precedence::Sum, Some(Infix::Minus)),
             Token::Slash => (Precedence::Product, Some(Infix::Slash)),
             Token::Asterisk => (Precedence::Product, Some(Infix::Asterisk)),
+            Token::Lparen => (Precedence::Call, None),
             _ => (Precedence::Lowest, None),
         }
     }
@@ -591,18 +592,18 @@ mod tests {
             ("fn(x, y) { x + y; }", "fn(x, y) { (x + y); };"),
             ("call()", "call();"),
             ("add(1, 2 * 3, 4 + 5)", "add(1, (2 * 3), (4 + 5));"),
-            // ("a + add(b * c) + d", "((a + add((b * c))) + d);"),
-            // (
-            //     "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-            //     "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
-            // ),
-            // (
-            //     "add(a + b + c * d / f + g)",
-            //     "add((((a + b) + ((c * d) / f)) + g));",
-            // ),
-            // ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4);"),
-            // ("let x = 3", "let x = 3;"),
-            // ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
+            ("a + add(b * c) + d", "((a + add((b * c))) + d);"),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g));",
+            ),
+            ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4);"),
+            ("let x = 3", "let x = 3;"),
+            ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
             // ("\"hello world\"", "\"hello world\";"),
             // ("let s = \"hello world\"", "let s = \"hello world\";"),
             // (
