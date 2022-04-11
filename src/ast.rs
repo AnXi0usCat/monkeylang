@@ -43,6 +43,7 @@ pub enum Expression {
     Boolean(bool),
     If(Box<Expression>, BlockStatement, Option<BlockStatement>),
     FunctionLiteral(Vec<String>, BlockStatement),
+    Call(Box<Expression>, Vec<Expression>),
 }
 
 impl fmt::Display for Expression {
@@ -65,6 +66,16 @@ impl fmt::Display for Expression {
             Self::FunctionLiteral(parameters, body) => {
                 write!(f, "fn({}) {}", parameters.join(", "), body)
             }
+            Self::Call(function, arguments) => write!(
+                f,
+                "{}({})",
+                function,
+                arguments
+                    .iter()
+                    .map(|expr| expr.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
         };
         Ok(())
     }
