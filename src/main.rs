@@ -1,3 +1,3 @@
 fn main() {
-    monkeylang::repl::start()
+    monkeylang::repl::start();
 }
