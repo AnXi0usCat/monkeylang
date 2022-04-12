@@ -6,6 +6,7 @@ pub struct Program {
     pub statements: Vec<Statement>,
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for statement in &self.statements {
@@ -22,6 +23,7 @@ pub enum Statement {
     Expression(Expression),
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
@@ -46,6 +48,7 @@ pub enum Expression {
     Call(Box<Expression>, Vec<Expression>),
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
@@ -87,6 +90,7 @@ pub enum Prefix {
     Bang,
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for Prefix {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
@@ -104,13 +108,12 @@ pub enum Infix {
     Asterisk,
     Slash,
     Equals,
-    Gequals,
-    Lequals,
     Nequals,
     Gthen,
     Lthen,
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for Infix {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
@@ -119,8 +122,6 @@ impl fmt::Display for Infix {
             Self::Asterisk => write!(f, "*"),
             Self::Slash => write!(f, "/"),
             Self::Equals => write!(f, "=="),
-            Self::Gequals => write!(f, ">="),
-            Self::Lequals => write!(f, "<="),
             Self::Nequals => write!(f, "!="),
             Self::Gthen => write!(f, ">"),
             Self::Lthen => write!(f, "<"),
@@ -134,6 +135,7 @@ pub struct BlockStatement {
     pub statements: Vec<Statement>,
 }
 
+#[allow(unused_must_use)]
 impl fmt::Display for BlockStatement {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for statement in &self.statements {

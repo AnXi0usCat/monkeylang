@@ -1,9 +1,7 @@
 use crate::ast::BlockStatement;
 use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::lexer::Lexer;
-use crate::parser::Precedence::Lowest;
 use crate::token::Token;
-use std::fmt::format;
 use std::mem;
 
 type PrefixParseFn<'a> = fn(&mut Parser<'a>) -> Result<Expression, String>;
