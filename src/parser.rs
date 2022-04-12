@@ -44,7 +44,7 @@ impl<'a> Parser<'a> {
         self.cur_token = mem::replace(&mut self.peek_token, self.lexer.next_token())
     }
 
-    fn parse_program(&mut self) -> Program {
+    pub fn parse_program(&mut self) -> Program {
         let mut statements = vec![];
 
         while self.cur_token != Token::Eof {
@@ -348,6 +348,13 @@ impl<'a> Parser<'a> {
         }
         self.next_token();
         Ok(())
+    }
+
+    pub fn get_errors(&self) -> Option<&[String]> {
+        match !self.errors.is_empty() {
+            true => Some(&self.errors),
+            false => None,
+        }
     }
 }
 
