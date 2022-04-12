@@ -1,4 +1,5 @@
 use crate::lexer::Lexer;
+use crate::parser::Parser;
 use std::io::BufRead;
 use std::{io, process};
 
@@ -16,8 +17,15 @@ pub fn start() {
         });
 
         let lexer = Lexer::new(&input);
-        for token in lexer {
-            println!("{}", token);
+        let mut parser = Parser::new(lexer);
+        let program = parser.parse_program();
+
+        if parser.get_errors().is_some() {
+            eprintln!("parser errors:");
+            for err in parser.get_errors().unwrap() {
+                eprintln!("{}", err)
+            }
+            continue;
         }
     }
 }
