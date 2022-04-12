@@ -1,9 +1,10 @@
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::io::BufRead;
-use std::{io, process};
+use std::io::{self, Write};
+use std::process;
 
-pub fn start() {
+pub fn start() -> io::Result<()> {
     let stdin = io::stdin();
     println!("Hello! This is the 🐒 programming language!");
 
@@ -26,6 +27,10 @@ pub fn start() {
                 eprintln!("{}", err)
             }
             continue;
+        }
+
+        for statement in program.statements {
+            io::stdout().write_all(statement.to_string().as_bytes())?;
         }
     }
 }
