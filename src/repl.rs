@@ -11,6 +11,7 @@ pub fn start() -> io::Result<()> {
     loop {
         let mut input = String::new();
         print!("{}", ">> ");
+        std::io::stdout().flush().unwrap();
 
         stdin.lock().read_line(&mut input).unwrap_or_else(|err| {
             eprintln!("Problem reading input: {:?}", (err));
@@ -30,7 +31,7 @@ pub fn start() -> io::Result<()> {
         }
 
         for statement in program.statements {
-            io::stdout().write_all(statement.to_string().as_bytes())?;
+            println!("{}", statement.to_string());
         }
     }
 }
