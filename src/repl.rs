@@ -1,3 +1,4 @@
+use crate::evaluator;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::io::BufRead;
@@ -30,8 +31,7 @@ pub fn start() -> io::Result<()> {
             continue;
         }
 
-        for statement in program.statements {
-            println!("{}", statement.to_string());
-        }
+        let eval = evaluator::eval(&program);
+        println!("{}", eval.unwrap().to_string());
     }
 }
