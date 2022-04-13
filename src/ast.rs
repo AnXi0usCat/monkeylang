@@ -39,7 +39,7 @@ impl fmt::Display for Statement {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
     Identifier(String),
-    IntegerLiteral(i32),
+    IntegerLiteral(i64),
     PrefixExpression(Prefix, Box<Expression>),
     InfixExpression(Box<Expression>, Infix, Box<Expression>),
     Boolean(bool),
