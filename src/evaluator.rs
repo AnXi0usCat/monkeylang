@@ -1,4 +1,4 @@
-use crate::ast::{Expression, Program, Statement};
+use crate::ast::{Expression, Prefix, Program, Statement};
 use crate::object::Object;
 
 pub fn eval(program: &Program) -> Result<Object, String> {
@@ -18,7 +18,25 @@ fn eval_expression(expr: &Expression) -> Result<Object, String> {
     match expr {
         Expression::IntegerLiteral(value) => Ok(Object::Integer(*value)),
         Expression::Boolean(value) => Ok(Object::Boolean(*value)),
+        Expression::PrefixExpression(prefix, expr) => eval_prefix_expression(prefix, expr.as_ref()),
         _ => Ok(Object::Null),
+    }
+}
+
+fn eval_prefix_expression(prefix: &Prefix, expr: &Expression) -> Result<Object, String> {
+    let obj = eval_expression(expr)?;
+    match prefix {
+        Prefix::Bang => eval_bang_operator(&obj),
+        _ => Ok(Object::Null),
+    }
+}
+
+fn eval_bang_operator(right: &Object) -> Result<Object, String> {
+    match right {
+        Object::Boolean(true) => Ok(Object::Boolean(false)),
+        Object::Boolean(false) => Ok(Object::Boolean(true)),
+        Object::Null => Ok(Object::Boolean(true)),
+        _ => Ok(Object::Boolean(false)),
     }
 }
 
@@ -53,14 +71,37 @@ mod tests {
     #[test]
     fn eval_boolean() {
         // GIVEN
-        let tests = vec![("true", true), ("false", false)];
+        let tests = vec![("true", "true"), ("false", "false")];
 
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
 
             // THEN
-            assert_eq!(result.unwrap().to_string(), expected.to_string());
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_bang_prefix() {
+        // GIVEN
+        let tests = vec![
+            ("!true", "false"),
+            ("!!true", "true"),
+            ("!false", "true"),
+            ("!!false", "false"),
+            ("!null", "true"),
+            ("!!null", "false"),
+            ("!0", "false"),
+            ("!3", "false"),
+            ("!!3", "true"),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
         }
     }
 }
