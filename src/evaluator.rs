@@ -17,6 +17,7 @@ pub fn eval(program: &Program) -> Result<Object, String> {
 fn eval_expression(expr: &Expression) -> Result<Object, String> {
     match expr {
         Expression::IntegerLiteral(value) => Ok(Object::Integer(*value)),
+        Expression::Boolean(value) => Ok(Object::Boolean(*value)),
         _ => Ok(Object::Null),
     }
 }
@@ -39,6 +40,20 @@ mod tests {
     fn eval_integer() {
         // GIVEN
         let tests = vec![("5", 5), ("10", 10)];
+
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected.to_string());
+        }
+    }
+
+    #[test]
+    fn eval_boolean() {
+        // GIVEN
+        let tests = vec![("true", true), ("false", false)];
 
         // WHEN
         for (input, expected) in tests {
