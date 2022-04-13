@@ -26,7 +26,7 @@ pub fn start() -> io::Result<()> {
         if parser.get_errors().is_some() {
             eprintln!("parser errors:");
             for err in parser.get_errors().unwrap() {
-                eprintln!("{}", err)
+                eprintln!("\t{}", err)
             }
             continue;
         }
