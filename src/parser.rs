@@ -186,7 +186,7 @@ impl<'a> Parser<'a> {
 
     fn parse_integer_literal(&mut self) -> Result<Expression, String> {
         if let Token::Int(int_str) = self.cur_token.clone() {
-            let int = int_str.to_owned().parse::<i32>().unwrap();
+            let int = int_str.to_owned().parse::<i64>().unwrap();
             Ok(Expression::IntegerLiteral(int))
         } else {
             Err(format!(
