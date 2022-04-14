@@ -27,6 +27,7 @@ fn eval_prefix_expression(prefix: &Prefix, expr: &Expression) -> Result<Object, 
     let obj = eval_expression(expr)?;
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
+        Prefix::Minus => eval_minus_operator(&obj),
         _ => Ok(Object::Null),
     }
 }
@@ -37,6 +38,13 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
         Object::Boolean(false) => Ok(Object::Boolean(true)),
         Object::Null => Ok(Object::Boolean(true)),
         _ => Ok(Object::Boolean(false)),
+    }
+}
+
+fn eval_minus_operator(right: &Object) -> Result<Object, String> {
+    match right {
+        Object::Integer(int) => Ok(Object::Integer(-(*int))),
+        _ => Ok(Object::Null),
     }
 }
 
@@ -58,6 +66,20 @@ mod tests {
     fn eval_integer() {
         // GIVEN
         let tests = vec![("5", 5), ("10", 10)];
+
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected.to_string());
+        }
+    }
+
+    #[test]
+    fn eval_integer_prefix() {
+        // GIVEN
+        let tests = vec![("-5", -5), ("-10", -10)];
 
         // WHEN
         for (input, expected) in tests {
