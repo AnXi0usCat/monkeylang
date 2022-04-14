@@ -68,6 +68,10 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
         Infix::Minus => Ok(Object::Integer(left - right)),
         Infix::Asterisk => Ok(Object::Integer(left * right)),
         Infix::Slash => Ok(Object::Integer(left / right)),
+        Infix::Lthen => Ok(Object::Boolean(left < right)),
+        Infix::Gthen => Ok(Object::Boolean(left > right)),
+        Infix::Equals => Ok(Object::Boolean(left == right)),
+        Infix::Nequals => Ok(Object::Boolean(left != right)),
         _ => Ok(Object::Null),
     }
 }
@@ -117,14 +121,25 @@ mod tests {
     #[test]
     fn eval_boolean() {
         // GIVEN
-        let tests = vec![("true", "true"), ("false", "false")];
+        let tests = vec![
+            ("true", true),
+            ("false", false),
+            ("1 < 2", true),
+            ("1 > 2", false),
+            ("1 < 1", false),
+            ("1 > 1", false),
+            ("1 == 1", true),
+            ("1 != 1", false),
+            ("1 == 2", false),
+            ("1 != 2", true),
+        ];
 
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
 
             // THEN
-            assert_eq!(result.unwrap().to_string(), expected);
+            assert_eq!(result.unwrap().to_string(), expected.to_string());
         }
     }
 
