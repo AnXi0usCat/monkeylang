@@ -1,5 +1,6 @@
 use crate::ast::{Expression, Infix, Prefix, Program, Statement};
 use crate::object::Object;
+use crate::object::Object::Boolean;
 
 pub fn eval(program: &Program) -> Result<Object, String> {
     let mut result = Ok(Object::Null);
@@ -58,6 +59,9 @@ fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result
         (Object::Integer(value1), Object::Integer(value2)) => {
             eval_integer_infix_expression(infix, *value1, *value2)
         }
+        (Object::Boolean(value1), Object::Boolean(value2)) => {
+            eval_boolean_infix_expression(infix, *value1, *value2)
+        }
         _ => Ok(Object::Null),
     }
 }
@@ -72,6 +76,14 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
         Infix::Gthen => Ok(Object::Boolean(left > right)),
         Infix::Equals => Ok(Object::Boolean(left == right)),
         Infix::Nequals => Ok(Object::Boolean(left != right)),
+        _ => Ok(Object::Null),
+    }
+}
+
+fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Result<Object, String> {
+    match infix {
+        Infix::Equals => Ok(Boolean(left == right)),
+        Infix::Nequals => Ok(Boolean(left != right)),
         _ => Ok(Object::Null),
     }
 }
@@ -192,6 +204,29 @@ mod tests {
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected.to_string());
+        }
+    }
+
+    #[test]
+    fn eval_boolean_expression() {
+        // GIVEN
+        let tests = vec![
+            ("true == true", true),
+            ("false == false", true),
+            ("true == false", false),
+            ("true != false", true),
+            ("false != true", true),
+            ("(1 < 2) == true", true),
+            ("(1 < 2) == false", false),
+            ("(1 > 2) == true", false),
+            ("(1 > 2) == false", true),
+        ];
+        // WHEN
+        for (inout, expected) in tests {
+            let result = test_eval(inout);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected.to_string())
         }
     }
 }
