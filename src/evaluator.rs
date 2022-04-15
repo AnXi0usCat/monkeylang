@@ -1,16 +1,28 @@
-use crate::ast::{Expression, Infix, Prefix, Program, Statement};
+use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::object::Object;
-use crate::object::Object::Boolean;
+use crate::object::Object::{Boolean, Null};
 
 pub fn eval(program: &Program) -> Result<Object, String> {
-    let mut result = Ok(Object::Null);
+    let mut result = Ok(Null);
     for statement in &program.statements {
-        result = match statement {
-            Statement::Expression(val) => eval_expression(val),
-            Statement::Return(Some(expr)) => Ok(Object::Null),
-            Statement::Return(None) => Ok(Object::Null),
-            Statement::Let(value, expr) => Ok(Object::Null),
-        };
+        result = eval_statement(statement);
+    }
+    result
+}
+
+fn eval_statement(statement: &Statement) -> Result<Object, String> {
+    match statement {
+        Statement::Expression(val) => eval_expression(val),
+        Statement::Return(Some(expr)) => Ok(Null),
+        Statement::Return(None) => Ok(Null),
+        Statement::Let(value, expr) => Ok(Null),
+    }
+}
+
+fn eval_block_statement(block: &BlockStatement) -> Result<Object, String> {
+    let mut result = Ok(Null);
+    for statement in &block.statements {
+        result = eval_statement(statement);
     }
     result
 }
@@ -25,7 +37,10 @@ fn eval_expression(expr: &Expression) -> Result<Object, String> {
             let ex_obj2 = eval_expression(expr2)?;
             eval_infix_expression(infix, &ex_obj1, &ex_obj2)
         }
-        _ => Ok(Object::Null),
+        Expression::If(condition, consequence, alternative) => {
+            eval_if_expression(condition.as_ref(), consequence, alternative.as_ref())
+        }
+        _ => Ok(Null),
     }
 }
 
@@ -34,7 +49,7 @@ fn eval_prefix_expression(prefix: &Prefix, expr: &Expression) -> Result<Object, 
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
         Prefix::Minus => eval_minus_operator(&obj),
-        _ => Ok(Object::Null),
+        _ => Ok(Null),
     }
 }
 
@@ -42,7 +57,7 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Boolean(true) => Ok(Object::Boolean(false)),
         Object::Boolean(false) => Ok(Object::Boolean(true)),
-        Object::Null => Ok(Object::Boolean(true)),
+        Null => Ok(Object::Boolean(true)),
         _ => Ok(Object::Boolean(false)),
     }
 }
@@ -50,7 +65,7 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
 fn eval_minus_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Integer(int) => Ok(Object::Integer(-(*int))),
-        _ => Ok(Object::Null),
+        _ => Ok(Null),
     }
 }
 
@@ -62,7 +77,7 @@ fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result
         (Object::Boolean(value1), Object::Boolean(value2)) => {
             eval_boolean_infix_expression(infix, *value1, *value2)
         }
-        _ => Ok(Object::Null),
+        _ => Ok(Null),
     }
 }
 
@@ -76,7 +91,7 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
         Infix::Gthen => Ok(Object::Boolean(left > right)),
         Infix::Equals => Ok(Object::Boolean(left == right)),
         Infix::Nequals => Ok(Object::Boolean(left != right)),
-        _ => Ok(Object::Null),
+        _ => Ok(Null),
     }
 }
 
@@ -84,7 +99,22 @@ fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Resu
     match infix {
         Infix::Equals => Ok(Boolean(left == right)),
         Infix::Nequals => Ok(Boolean(left != right)),
-        _ => Ok(Object::Null),
+        _ => Ok(Null),
+    }
+}
+
+fn eval_if_expression(
+    condition: &Expression,
+    consequence: &BlockStatement,
+    alternative: Option<&BlockStatement>,
+) -> Result<Object, String> {
+    let result = eval_expression(condition)?;
+    if result.is_truthy() {
+        eval_block_statement(consequence)
+    } else {
+        alternative
+            .map(|alt| eval_block_statement(alt))
+            .unwrap_or(Ok(Null))
     }
 }
 
@@ -93,6 +123,7 @@ mod tests {
     use crate::evaluator::eval;
     use crate::lexer::Lexer;
     use crate::object::Object;
+    use crate::object::Object::Null;
     use crate::parser::Parser;
 
     fn test_eval(input: &str) -> Result<Object, String> {
@@ -227,6 +258,27 @@ mod tests {
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected.to_string())
+        }
+    }
+
+    #[test]
+    fn eval_if_else_expressions() {
+        // GIVEN
+        let tests = vec![
+            ("if (true) { 10 }", "10"),
+            //("if (false) { 10 }", "null"),
+            // ("if (1) { 10 }", "10"),
+            // ("if (1 < 2) { 10 }", "10"),
+            // ("if (1 > 2) { 10 }", "null"),
+            // ("if (1 > 2) { 10 } else { 20 }", "20"),
+            // ("if (1 < 2) { 10 } else { 20 }", "20"),
+        ];
+        // WHEN
+        for (inout, expected) in tests {
+            let result = test_eval(inout);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
         }
     }
 }
