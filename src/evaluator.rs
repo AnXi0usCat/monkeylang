@@ -30,8 +30,8 @@ fn eval_block_statement(block: &BlockStatement) -> Result<Object, String> {
     let mut result = Null;
     for statement in &block.statements {
         result = eval_statement(statement)?;
-        if let Object::Return(value) = result {
-            return Ok(*value);
+        if let Object::Return(_) = result {
+            return Ok(result);
         }
     }
     Ok(result)
@@ -300,6 +300,30 @@ mod tests {
             ("return 10; 9;", "10"),
             ("return 2 * 5; 9;", "10"),
             ("9; return 2 * 5; 9;", "10"),
+        ];
+        // WHEN
+        for (inout, expected) in tests {
+            let result = test_eval(inout);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_nested_statements() {
+        // GIVEN
+        let tests = vec![
+            // Nested statements
+            (
+                "if (10 > 1) {
+                if (10 > 1) {
+                    return 10;
+                }
+                return 1;
+            }",
+                "10",
+            ),
         ];
         // WHEN
         for (inout, expected) in tests {
