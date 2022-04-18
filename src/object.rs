@@ -33,4 +33,14 @@ impl Object {
             _ => true,
         }
     }
+
+    pub fn obj_type(&self) -> &str {
+        match self {
+            Self::Integer(_) => "INTEGER",
+            Self::String(_) => "STRING",
+            Self::Boolean(_) => "BOOLEAN",
+            Self::Null => "NULL",
+            Self::Return(_) => "RETURN",
+        }
+    }
 }
