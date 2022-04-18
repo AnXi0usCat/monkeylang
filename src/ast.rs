@@ -62,7 +62,7 @@ impl fmt::Display for Expression {
             Self::If(condition, consequence, alternative) => {
                 write!(f, "if {} {}", condition, consequence)?;
                 if alternative.is_some() {
-                    write!(f, "else {}", alternative.as_ref().unwrap())?;
+                    write!(f, " else {}", alternative.as_ref().unwrap())?;
                 }
                 Ok(())
             }
