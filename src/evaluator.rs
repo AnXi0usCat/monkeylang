@@ -271,7 +271,7 @@ mod tests {
             ("if (1 < 2) { 10 }", "10"),
             ("if (1 > 2) { 10 }", "Null"),
             ("if (1 > 2) { 10 } else { 20 }", "20"),
-            ("if (1 < 2) { 10 } else { 20 }", "20"),
+            ("if (1 < 2) { 10 } else { 20 }", "10"),
         ];
         // WHEN
         for (inout, expected) in tests {
