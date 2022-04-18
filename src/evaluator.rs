@@ -1,6 +1,6 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::object::Object;
-use crate::object::Object::{Boolean, Null, Return};
+use crate::object::Object::{Boolean, Integer, Null, Return};
 
 pub fn eval(program: &Program) -> Result<Object, String> {
     let mut result = Null;
@@ -59,7 +59,7 @@ fn eval_prefix_expression(prefix: &Prefix, expr: &Expression) -> Result<Object, 
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
         Prefix::Minus => eval_minus_operator(&obj),
-        _ => Ok(Null),
+        _ => Err(format!("unknown operator: {} {}", prefix, obj.obj_type())),
     }
 }
 
@@ -75,7 +75,7 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
 fn eval_minus_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Integer(int) => Ok(Object::Integer(-(*int))),
-        _ => Ok(Null),
+        _ => Err(format!("unknown operator: -{}", right.obj_type())),
     }
 }
 
@@ -87,7 +87,12 @@ fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result
         (Object::Boolean(value1), Object::Boolean(value2)) => {
             eval_boolean_infix_expression(infix, *value1, *value2)
         }
-        _ => Ok(Null),
+        (left, right) => Err(format!(
+            "type mismatch: {} {} {}",
+            left.obj_type(),
+            infix,
+            right.obj_type()
+        )),
     }
 }
 
@@ -101,7 +106,12 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
         Infix::Gthen => Ok(Object::Boolean(left > right)),
         Infix::Equals => Ok(Object::Boolean(left == right)),
         Infix::Nequals => Ok(Object::Boolean(left != right)),
-        _ => Ok(Null),
+        _ => Err(format!(
+            "unknown operator: {} {} {}",
+            Integer(left).obj_type(),
+            infix,
+            Integer(right).obj_type()
+        )),
     }
 }
 
@@ -109,7 +119,12 @@ fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Resu
     match infix {
         Infix::Equals => Ok(Boolean(left == right)),
         Infix::Nequals => Ok(Boolean(left != right)),
-        _ => Ok(Null),
+        _ => Err(format!(
+            "unknown operator: {} {} {}",
+            Boolean(left).obj_type(),
+            infix,
+            Boolean(right).obj_type()
+        )),
     }
 }
 
@@ -331,6 +346,37 @@ mod tests {
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn evaluate_errors() {
+        // GIVEN
+        let tests = vec![
+            ("5 + true;", "type mismatch: INTEGER + BOOLEAN"),
+            ("5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"),
+            ("-true", "unknown operator: -BOOLEAN"),
+            ("true + false;", "unknown operator: BOOLEAN + BOOLEAN"),
+            ("5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"),
+            (
+                "if (10 > 1) { true + false; }",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                "if (10 > 1) {
+                if (10 > 1) {
+                  return true + false;
+                }
+              return 1; }",
+                "unknown operator: BOOLEAN + BOOLEAN",
+            ),
+        ];
+        // WHEN
+        for (inout, expected) in tests {
+            let result = test_eval(inout);
+
+            // THEN
+            assert_eq!(result.unwrap_err().to_string(), expected);
         }
     }
 }
