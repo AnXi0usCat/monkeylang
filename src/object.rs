@@ -7,6 +7,7 @@ pub enum Object {
     Integer(i64),
     Boolean(bool),
     Null,
+    Return(Box<Object>),
 }
 
 #[allow(unused_must_use)]
@@ -16,6 +17,7 @@ impl fmt::Display for Object {
             Self::String(value) => write!(f, "{}", value),
             Self::Integer(value) => write!(f, "{}", value),
             Self::Boolean(value) => write!(f, "{}", value),
+            Self::Return(value) => write!(f, "{}", *value),
             Self::Null => write!(f, "Null"),
         };
         Ok(())
