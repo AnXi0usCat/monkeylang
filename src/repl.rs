@@ -31,7 +31,10 @@ pub fn start() -> io::Result<()> {
             continue;
         }
 
-        let eval = evaluator::eval(&program);
-        println!("{}", eval.unwrap().to_string());
+        let result = evaluator::eval(&program);
+        match result {
+            Ok(object) => println!("{}", object.to_string()),
+            Err(error) => println!("{}", error.to_string()),
+        }
     }
 }
