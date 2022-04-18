@@ -1,30 +1,40 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::object::Object;
-use crate::object::Object::{Boolean, Null};
+use crate::object::Object::{Boolean, Null, Return};
 
 pub fn eval(program: &Program) -> Result<Object, String> {
-    let mut result = Ok(Null);
+    let mut result = Null;
     for statement in &program.statements {
-        result = eval_statement(statement);
+        result = eval_statement(statement)?;
+
+        if let Object::Return(value) = result {
+            return Ok(*value);
+        }
     }
-    result
+    Ok(result)
 }
 
 fn eval_statement(statement: &Statement) -> Result<Object, String> {
     match statement {
         Statement::Expression(val) => eval_expression(val),
-        Statement::Return(Some(expr)) => Ok(Null),
+        Statement::Return(Some(expr)) => {
+            let obj = eval_expression(expr)?;
+            Ok(Return(Box::new(obj)))
+        }
         Statement::Return(None) => Ok(Null),
         Statement::Let(value, expr) => Ok(Null),
     }
 }
 
 fn eval_block_statement(block: &BlockStatement) -> Result<Object, String> {
-    let mut result = Ok(Null);
+    let mut result = Null;
     for statement in &block.statements {
-        result = eval_statement(statement);
+        result = eval_statement(statement)?;
+        if let Object::Return(value) = result {
+            return Ok(*value);
+        }
     }
-    result
+    Ok(result)
 }
 
 fn eval_expression(expr: &Expression) -> Result<Object, String> {
@@ -272,6 +282,24 @@ mod tests {
             ("if (1 > 2) { 10 }", "Null"),
             ("if (1 > 2) { 10 } else { 20 }", "20"),
             ("if (1 < 2) { 10 } else { 20 }", "10"),
+        ];
+        // WHEN
+        for (inout, expected) in tests {
+            let result = test_eval(inout);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_return_statement() {
+        // GIVEN
+        let tests = vec![
+            ("return 10;", "10"),
+            ("return 10; 9;", "10"),
+            ("return 2 * 5; 9;", "10"),
+            ("9; return 2 * 5; 9;", "10"),
         ];
         // WHEN
         for (inout, expected) in tests {
