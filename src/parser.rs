@@ -153,11 +153,11 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_if_expression(&mut self) -> Result<Expression, String> {
-        self.expect_peek(Token::Rparen)?;
+        self.expect_peek(Token::Lparen)?;
         self.next_token();
 
         let condition = self.parse_expression(Precedence::Lowest)?;
-        self.expect_peek(Token::Lparen)?;
+        self.expect_peek(Token::Rparen)?;
         self.expect_peek(Token::Lbrace)?;
 
         let consequence = self.parse_block_statement()?;
