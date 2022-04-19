@@ -1,3 +1,4 @@
+use crate::environment::Environment;
 use crate::evaluator;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
@@ -7,6 +8,7 @@ use std::process;
 
 pub fn start() -> io::Result<()> {
     let stdin = io::stdin();
+    let mut env = Environment::new();
     println!("Hello! This is the 🐒 programming language!");
 
     loop {
@@ -31,7 +33,7 @@ pub fn start() -> io::Result<()> {
             continue;
         }
 
-        let result = evaluator::eval(&program);
+        let result = evaluator::eval(&program, &mut env);
         match result {
             Ok(object) => println!("{}", object.to_string()),
             Err(error) => println!("{}", error.to_string()),

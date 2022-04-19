@@ -1,11 +1,12 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
+use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
 
-pub fn eval(program: &Program) -> Result<Object, String> {
+pub fn eval(program: &Program, env: &mut Environment) -> Result<Object, String> {
     let mut result = Null;
     for statement in &program.statements {
-        result = eval_statement(statement)?;
+        result = eval_statement(statement, env)?;
 
         if let Object::Return(value) = result {
             return Ok(*value);
@@ -14,22 +15,26 @@ pub fn eval(program: &Program) -> Result<Object, String> {
     Ok(result)
 }
 
-fn eval_statement(statement: &Statement) -> Result<Object, String> {
+fn eval_statement(statement: &Statement, env: &mut Environment) -> Result<Object, String> {
     match statement {
-        Statement::Expression(expr) => eval_expression(expr),
+        Statement::Expression(expr) => eval_expression(expr, env),
         Statement::Return(Some(expr)) => {
-            let obj = eval_expression(expr)?;
+            let obj = eval_expression(expr, env)?;
             Ok(Return(Box::new(obj)))
         }
         Statement::Return(None) => Ok(Null),
-        Statement::Let(name, expr) => eval_expression(expr),
+        Statement::Let(name, expr) => {
+            let result = eval_expression(expr, env)?;
+            env.set(name, result.clone());
+            Ok(result)
+        }
     }
 }
 
-fn eval_block_statement(block: &BlockStatement) -> Result<Object, String> {
+fn eval_block_statement(block: &BlockStatement, env: &mut Environment) -> Result<Object, String> {
     let mut result = Null;
     for statement in &block.statements {
-        result = eval_statement(statement)?;
+        result = eval_statement(statement, env)?;
         if let Object::Return(_) = result {
             return Ok(result);
         }
@@ -37,25 +42,31 @@ fn eval_block_statement(block: &BlockStatement) -> Result<Object, String> {
     Ok(result)
 }
 
-fn eval_expression(expr: &Expression) -> Result<Object, String> {
+fn eval_expression(expr: &Expression, env: &mut Environment) -> Result<Object, String> {
     match expr {
         Expression::IntegerLiteral(value) => Ok(Object::Integer(*value)),
         Expression::Boolean(value) => Ok(Object::Boolean(*value)),
-        Expression::PrefixExpression(prefix, expr) => eval_prefix_expression(prefix, expr.as_ref()),
+        Expression::PrefixExpression(prefix, expr) => {
+            eval_prefix_expression(prefix, expr.as_ref(), env)
+        }
         Expression::InfixExpression(expr1, infix, expr2) => {
-            let ex_obj1 = eval_expression(expr1)?;
-            let ex_obj2 = eval_expression(expr2)?;
+            let ex_obj1 = eval_expression(expr1, env)?;
+            let ex_obj2 = eval_expression(expr2, env)?;
             eval_infix_expression(infix, &ex_obj1, &ex_obj2)
         }
         Expression::If(condition, consequence, alternative) => {
-            eval_if_expression(condition.as_ref(), consequence, alternative.as_ref())
+            eval_if_expression(condition.as_ref(), consequence, alternative.as_ref(), env)
         }
         _ => Ok(Null),
     }
 }
 
-fn eval_prefix_expression(prefix: &Prefix, expr: &Expression) -> Result<Object, String> {
-    let obj = eval_expression(expr)?;
+fn eval_prefix_expression(
+    prefix: &Prefix,
+    expr: &Expression,
+    env: &mut Environment,
+) -> Result<Object, String> {
+    let obj = eval_expression(expr, env)?;
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
         Prefix::Minus => eval_minus_operator(&obj),
@@ -132,19 +143,21 @@ fn eval_if_expression(
     condition: &Expression,
     consequence: &BlockStatement,
     alternative: Option<&BlockStatement>,
+    env: &mut Environment,
 ) -> Result<Object, String> {
-    let result = eval_expression(condition)?;
+    let result = eval_expression(condition, env)?;
     if result.is_truthy() {
-        eval_block_statement(consequence)
+        eval_block_statement(consequence, env)
     } else {
         alternative
-            .map(|alt| eval_block_statement(alt))
+            .map(|alt| eval_block_statement(alt, env))
             .unwrap_or(Ok(Null))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::environment::Environment;
     use crate::evaluator::eval;
     use crate::lexer::Lexer;
     use crate::object::Object;
@@ -155,7 +168,8 @@ mod tests {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        eval(&program)
+        let mut env = Environment::new();
+        eval(&program, &mut env)
     }
 
     #[test]
@@ -382,7 +396,7 @@ mod tests {
     }
 
     #[test]
-    fn eal_let_statements() {
+    fn eval_let_statements() {
         // GIVEN
         let tests = vec![
             ("let a = 5; a;", "5"),
