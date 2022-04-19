@@ -278,8 +278,8 @@ mod tests {
             ("(1 > 2) == false", true),
         ];
         // WHEN
-        for (inout, expected) in tests {
-            let result = test_eval(inout);
+        for (input, expected) in tests {
+            let result = test_eval(input);
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected.to_string())
@@ -299,8 +299,8 @@ mod tests {
             ("if (1 < 2) { 10 } else { 20 }", "10"),
         ];
         // WHEN
-        for (inout, expected) in tests {
-            let result = test_eval(inout);
+        for (input, expected) in tests {
+            let result = test_eval(input);
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
@@ -317,8 +317,8 @@ mod tests {
             ("9; return 2 * 5; 9;", "10"),
         ];
         // WHEN
-        for (inout, expected) in tests {
-            let result = test_eval(inout);
+        for (input, expected) in tests {
+            let result = test_eval(input);
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
@@ -341,8 +341,8 @@ mod tests {
             ),
         ];
         // WHEN
-        for (inout, expected) in tests {
-            let result = test_eval(inout);
+        for (input, expected) in tests {
+            let result = test_eval(input);
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
@@ -370,13 +370,32 @@ mod tests {
               return 1; }",
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
+            ("foobar", "identifier not found: foobar"),
         ];
         // WHEN
-        for (inout, expected) in tests {
-            let result = test_eval(inout);
+        for (input, expected) in tests {
+            let result = test_eval(input);
 
             // THEN
             assert_eq!(result.unwrap_err().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eal_let_statements() {
+        // GIVEN
+        let tests = vec![
+            ("let a = 5; a;", "5"),
+            ("let a = 5 * 5; a;", "25"),
+            ("let a = 5; let b = a; b;", "5"),
+            ("let a = 5; let b = a; let c = a + b + 5; c;", "15"),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
         }
     }
 }
