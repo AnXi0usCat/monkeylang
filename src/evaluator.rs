@@ -16,13 +16,13 @@ pub fn eval(program: &Program) -> Result<Object, String> {
 
 fn eval_statement(statement: &Statement) -> Result<Object, String> {
     match statement {
-        Statement::Expression(val) => eval_expression(val),
+        Statement::Expression(expr) => eval_expression(expr),
         Statement::Return(Some(expr)) => {
             let obj = eval_expression(expr)?;
             Ok(Return(Box::new(obj)))
         }
         Statement::Return(None) => Ok(Null),
-        Statement::Let(value, expr) => Ok(Null),
+        Statement::Let(name, expr) => eval_expression(expr),
     }
 }
 
