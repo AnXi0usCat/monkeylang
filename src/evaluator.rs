@@ -3,6 +3,8 @@ use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
 
+const NULL: &str = "Null";
+
 pub fn eval(program: &Program, env: &mut Environment) -> Result<Object, String> {
     let mut result = Null;
     for statement in &program.statements {
@@ -57,6 +59,7 @@ fn eval_expression(expr: &Expression, env: &mut Environment) -> Result<Object, S
         Expression::If(condition, consequence, alternative) => {
             eval_if_expression(condition.as_ref(), consequence, alternative.as_ref(), env)
         }
+        Expression::Identifier(name) => eval_identifier(name, env),
         _ => Ok(Null),
     }
 }
@@ -78,7 +81,7 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Boolean(true) => Ok(Object::Boolean(false)),
         Object::Boolean(false) => Ok(Object::Boolean(true)),
-        Null => Ok(Object::Boolean(true)),
+        Object::Null => Ok(Object::Boolean(true)),
         _ => Ok(Object::Boolean(false)),
     }
 }
@@ -153,6 +156,17 @@ fn eval_if_expression(
             .map(|alt| eval_block_statement(alt, env))
             .unwrap_or(Ok(Null))
     }
+}
+
+fn eval_identifier(name: &str, env: &Environment) -> Result<Object, String> {
+    if let Some(obj) = env.get(name) {
+        return Ok(obj.clone());
+    }
+    // check if the identifier is actually a Null value
+    if name == NULL {
+        return Ok(Null);
+    }
+    Err(format!("identifier not found: {}", name))
 }
 
 #[cfg(test)]
@@ -233,8 +247,8 @@ mod tests {
             ("!!true", "true"),
             ("!false", "true"),
             ("!!false", "false"),
-            ("!null", "true"),
-            ("!!null", "false"),
+            ("!Null", "true"),
+            ("!!Null", "false"),
             ("!0", "false"),
             ("!3", "false"),
             ("!!3", "true"),
