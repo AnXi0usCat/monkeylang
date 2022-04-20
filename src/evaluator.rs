@@ -3,7 +3,7 @@ use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
 
-const NULL: &str = "Null";
+const NULL_LITERAL: &str = "Null";
 
 pub fn eval(program: &Program, env: &mut Environment) -> Result<Object, String> {
     let mut result = Null;
@@ -163,7 +163,7 @@ fn eval_identifier(name: &str, env: &Environment) -> Result<Object, String> {
         return Ok(obj.clone());
     }
     // check if the identifier is actually a Null value
-    if name == NULL {
+    if name == NULL_LITERAL {
         return Ok(Null);
     }
     Err(format!("identifier not found: {}", name))
