@@ -1,3 +1,4 @@
+use crate::ast::BlockStatement;
 use std::fmt;
 use std::fmt::{write, Formatter};
 
@@ -8,6 +9,7 @@ pub enum Object {
     Boolean(bool),
     Null,
     Return(Box<Object>),
+    Function(Vec<String>, BlockStatement),
 }
 
 #[allow(unused_must_use)]
@@ -19,6 +21,7 @@ impl fmt::Display for Object {
             Self::Boolean(value) => write!(f, "{}", value),
             Self::Return(value) => write!(f, "{}", *value),
             Self::Null => write!(f, "Null"),
+            Self::Function(params, body) => write!(f, "fn({}) {{ {} }}", params.join(", "), body),
         };
         Ok(())
     }
@@ -41,6 +44,7 @@ impl Object {
             Self::Boolean(_) => "BOOLEAN",
             Self::Null => "NULL",
             Self::Return(_) => "RETURN",
+            Self::Function(_, _) => "FUNCTION",
         }
     }
 }
