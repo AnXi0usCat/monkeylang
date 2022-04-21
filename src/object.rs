@@ -25,7 +25,7 @@ impl fmt::Display for Object {
             Self::Return(value) => write!(f, "{}", *value),
             Self::Null => write!(f, "Null"),
             Self::Function(params, body, _) => {
-                write!(f, "fn({}) {{ {} }}", params.join(", "), body)
+                write!(f, "fn({}) {}", params.join(", "), body)
             }
         };
         Ok(())
