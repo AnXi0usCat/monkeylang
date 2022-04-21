@@ -440,15 +440,14 @@ mod tests {
     #[test]
     fn eval_functions() {
         // GIVEN
-        let tests = vec![("fn(x) { x + 2; };", Object::Function)];
+        let tests = vec![("fn(x) { x + 2; };", "fn(x) { (x + 2); }")];
 
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
-            println!("{}------", result.unwrap());
 
             // THEN
-            //assert_eq!(result.unwrap(), expected);
+            assert_eq!(result.unwrap().to_string(), expected);
         }
     }
 }
