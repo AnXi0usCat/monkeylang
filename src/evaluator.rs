@@ -5,7 +5,7 @@ use crate::object::Object::{Boolean, Integer, Null, Return};
 
 const NULL_LITERAL: &str = "Null";
 
-pub fn eval(program: &Program, env: &mut Environment) -> Result<Object, String> {
+pub fn eval<'a>(program: &Program, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
     let mut result = Null;
     for statement in &program.statements {
         result = eval_statement(statement, env)?;
@@ -17,7 +17,10 @@ pub fn eval(program: &Program, env: &mut Environment) -> Result<Object, String> 
     Ok(result)
 }
 
-fn eval_statement(statement: &Statement, env: &mut Environment) -> Result<Object, String> {
+fn eval_statement<'a>(
+    statement: &Statement,
+    env: &mut Environment<'a>,
+) -> Result<Object<'a>, String> {
     match statement {
         Statement::Expression(expr) => eval_expression(expr, env),
         Statement::Return(Some(expr)) => {
@@ -33,7 +36,10 @@ fn eval_statement(statement: &Statement, env: &mut Environment) -> Result<Object
     }
 }
 
-fn eval_block_statement(block: &BlockStatement, env: &mut Environment) -> Result<Object, String> {
+fn eval_block_statement<'a>(
+    block: &BlockStatement,
+    env: &mut Environment<'a>,
+) -> Result<Object<'a>, String> {
     let mut result = Null;
     for statement in &block.statements {
         result = eval_statement(statement, env)?;
@@ -44,7 +50,7 @@ fn eval_block_statement(block: &BlockStatement, env: &mut Environment) -> Result
     Ok(result)
 }
 
-fn eval_expression(expr: &Expression, env: &mut Environment) -> Result<Object, String> {
+fn eval_expression<'a>(expr: &Expression, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
     match expr {
         Expression::IntegerLiteral(value) => Ok(Object::Integer(*value)),
         Expression::Boolean(value) => Ok(Object::Boolean(*value)),
@@ -64,11 +70,11 @@ fn eval_expression(expr: &Expression, env: &mut Environment) -> Result<Object, S
     }
 }
 
-fn eval_prefix_expression(
+fn eval_prefix_expression<'a>(
     prefix: &Prefix,
     expr: &Expression,
-    env: &mut Environment,
-) -> Result<Object, String> {
+    env: &mut Environment<'a>,
+) -> Result<Object<'a>, String> {
     let obj = eval_expression(expr, env)?;
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
@@ -77,7 +83,7 @@ fn eval_prefix_expression(
     }
 }
 
-fn eval_bang_operator(right: &Object) -> Result<Object, String> {
+fn eval_bang_operator<'a>(right: &Object) -> Result<Object<'a>, String> {
     match right {
         Object::Boolean(true) => Ok(Object::Boolean(false)),
         Object::Boolean(false) => Ok(Object::Boolean(true)),
@@ -86,14 +92,18 @@ fn eval_bang_operator(right: &Object) -> Result<Object, String> {
     }
 }
 
-fn eval_minus_operator(right: &Object) -> Result<Object, String> {
+fn eval_minus_operator<'a>(right: &Object) -> Result<Object<'a>, String> {
     match right {
         Object::Integer(int) => Ok(Object::Integer(-(*int))),
         _ => Err(format!("unknown operator: -{}", right.obj_type())),
     }
 }
 
-fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result<Object, String> {
+fn eval_infix_expression<'a>(
+    infix: &Infix,
+    left: &Object,
+    right: &Object,
+) -> Result<Object<'a>, String> {
     match (left, right) {
         (Object::Integer(value1), Object::Integer(value2)) => {
             eval_integer_infix_expression(infix, *value1, *value2)
@@ -110,7 +120,11 @@ fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result
     }
 }
 
-fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result<Object, String> {
+fn eval_integer_infix_expression<'a>(
+    infix: &Infix,
+    left: i64,
+    right: i64,
+) -> Result<Object<'a>, String> {
     match infix {
         Infix::Plus => Ok(Object::Integer(left + right)),
         Infix::Minus => Ok(Object::Integer(left - right)),
@@ -129,7 +143,11 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
     }
 }
 
-fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Result<Object, String> {
+fn eval_boolean_infix_expression<'a>(
+    infix: &Infix,
+    left: bool,
+    right: bool,
+) -> Result<Object<'a>, String> {
     match infix {
         Infix::Equals => Ok(Boolean(left == right)),
         Infix::Nequals => Ok(Boolean(left != right)),
@@ -142,12 +160,12 @@ fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Resu
     }
 }
 
-fn eval_if_expression(
+fn eval_if_expression<'a>(
     condition: &Expression,
     consequence: &BlockStatement,
     alternative: Option<&BlockStatement>,
-    env: &mut Environment,
-) -> Result<Object, String> {
+    env: &mut Environment<'a>,
+) -> Result<Object<'a>, String> {
     let result = eval_expression(condition, env)?;
     if result.is_truthy() {
         eval_block_statement(consequence, env)
@@ -158,7 +176,7 @@ fn eval_if_expression(
     }
 }
 
-fn eval_identifier(name: &str, env: &Environment) -> Result<Object, String> {
+fn eval_identifier<'a>(name: &str, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
     if let Some(obj) = env.get(name) {
         return Ok(obj.clone());
     }
