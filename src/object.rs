@@ -1,20 +1,22 @@
 use crate::ast::BlockStatement;
 use crate::environment::Environment;
+use std::cell::RefCell;
 use std::fmt;
 use std::fmt::{write, Formatter};
+use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Object<'a> {
+pub enum Object {
     String(String),
     Integer(i64),
     Boolean(bool),
     Null,
-    Return(Box<Object<'a>>),
-    Function(Vec<String>, BlockStatement, &'a Environment<'a>),
+    Return(Box<Object>),
+    Function(Vec<String>, BlockStatement, Rc<RefCell<Environment>>),
 }
 
 #[allow(unused_must_use)]
-impl<'a> fmt::Display for Object<'a> {
+impl fmt::Display for Object {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::String(value) => write!(f, "{}", value),
@@ -30,7 +32,7 @@ impl<'a> fmt::Display for Object<'a> {
     }
 }
 
-impl<'a> Object<'a> {
+impl Object {
     pub fn is_truthy(&self) -> bool {
         match self {
             Self::Null => false,
