@@ -2,13 +2,15 @@ use crate::environment::Environment;
 use crate::evaluator;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
+use std::cell::RefCell;
 use std::io::BufRead;
 use std::io::{self, Write};
 use std::process;
+use std::rc::Rc;
 
 pub fn start() -> io::Result<()> {
     let stdin = io::stdin();
-    let mut env = Environment::new();
+    let env = Rc::new(RefCell::new(Environment::new()));
     println!("Hello! This is the 🐒 programming language!");
 
     loop {
@@ -33,7 +35,7 @@ pub fn start() -> io::Result<()> {
             continue;
         }
 
-        let result = evaluator::eval(&program, &mut env);
+        let result = evaluator::eval(&program, Rc::clone(&env));
         match result {
             Ok(object) => println!("{}", object.to_string()),
             Err(error) => println!("{}", error.to_string()),
