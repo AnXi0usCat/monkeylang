@@ -2,22 +2,22 @@ use crate::object::Object;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Environment<'a> {
-    store: HashMap<String, Object<'a>>,
+pub struct Environment {
+    store: HashMap<String, Object>,
 }
 
-impl<'a> Environment<'a> {
+impl Environment {
     pub fn new() -> Self {
         Environment {
             store: HashMap::new(),
         }
     }
 
-    pub fn set(&mut self, k: &str, v: Object<'a>) {
+    pub fn set(&mut self, k: &str, v: Object) {
         self.store.insert(k.to_string(), v);
     }
 
-    pub fn get(&self, k: &str) -> Option<&Object<'a>> {
+    pub fn get(&self, k: &str) -> Option<&Object> {
         self.store.get(k)
     }
 }
