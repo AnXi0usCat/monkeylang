@@ -2,13 +2,15 @@ use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 const NULL_LITERAL: &str = "Null";
 
-pub fn eval<'a>(program: &Program, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
+pub fn eval(program: &Program, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
     let mut result = Null;
     for statement in &program.statements {
-        result = eval_statement(statement, env)?;
+        result = eval_statement(statement, Rc::clone(&env))?;
 
         if let Object::Return(value) = result {
             return Ok(*value);
@@ -17,10 +19,7 @@ pub fn eval<'a>(program: &Program, env: &mut Environment<'a>) -> Result<Object<'
     Ok(result)
 }
 
-fn eval_statement<'a>(
-    statement: &Statement,
-    env: &mut Environment<'a>,
-) -> Result<Object<'a>, String> {
+fn eval_statement(statement: &Statement, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
     match statement {
         Statement::Expression(expr) => eval_expression(expr, env),
         Statement::Return(Some(expr)) => {
@@ -29,20 +28,20 @@ fn eval_statement<'a>(
         }
         Statement::Return(None) => Ok(Null),
         Statement::Let(name, expr) => {
-            let result = eval_expression(expr, env)?;
-            env.set(name, result.clone());
+            let result = eval_expression(expr, Rc::clone(&env))?;
+            env.borrow_mut().set(name, result.clone());
             Ok(result)
         }
     }
 }
 
-fn eval_block_statement<'a>(
+fn eval_block_statement(
     block: &BlockStatement,
-    env: &mut Environment<'a>,
-) -> Result<Object<'a>, String> {
+    env: Rc<RefCell<Environment>>,
+) -> Result<Object, String> {
     let mut result = Null;
     for statement in &block.statements {
-        result = eval_statement(statement, env)?;
+        result = eval_statement(statement, Rc::clone(&env))?;
         if let Object::Return(_) = result {
             return Ok(result);
         }
@@ -50,7 +49,7 @@ fn eval_block_statement<'a>(
     Ok(result)
 }
 
-fn eval_expression<'a>(expr: &Expression, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
+fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
     match expr {
         Expression::IntegerLiteral(value) => Ok(Object::Integer(*value)),
         Expression::Boolean(value) => Ok(Object::Boolean(*value)),
@@ -58,7 +57,7 @@ fn eval_expression<'a>(expr: &Expression, env: &mut Environment<'a>) -> Result<O
             eval_prefix_expression(prefix, expr.as_ref(), env)
         }
         Expression::InfixExpression(expr1, infix, expr2) => {
-            let ex_obj1 = eval_expression(expr1, env)?;
+            let ex_obj1 = eval_expression(expr1, Rc::clone(&env))?;
             let ex_obj2 = eval_expression(expr2, env)?;
             eval_infix_expression(infix, &ex_obj1, &ex_obj2)
         }
@@ -66,15 +65,18 @@ fn eval_expression<'a>(expr: &Expression, env: &mut Environment<'a>) -> Result<O
             eval_if_expression(condition.as_ref(), consequence, alternative.as_ref(), env)
         }
         Expression::Identifier(name) => eval_identifier(name, env),
+        Expression::FunctionLiteral(params, body) => {
+            Ok(Object::Function(params.to_owned(), body.to_owned(), env))
+        }
         _ => Ok(Null),
     }
 }
 
-fn eval_prefix_expression<'a>(
+fn eval_prefix_expression(
     prefix: &Prefix,
     expr: &Expression,
-    env: &mut Environment<'a>,
-) -> Result<Object<'a>, String> {
+    env: Rc<RefCell<Environment>>,
+) -> Result<Object, String> {
     let obj = eval_expression(expr, env)?;
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
@@ -83,7 +85,7 @@ fn eval_prefix_expression<'a>(
     }
 }
 
-fn eval_bang_operator<'a>(right: &Object) -> Result<Object<'a>, String> {
+fn eval_bang_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Boolean(true) => Ok(Object::Boolean(false)),
         Object::Boolean(false) => Ok(Object::Boolean(true)),
@@ -92,18 +94,14 @@ fn eval_bang_operator<'a>(right: &Object) -> Result<Object<'a>, String> {
     }
 }
 
-fn eval_minus_operator<'a>(right: &Object) -> Result<Object<'a>, String> {
+fn eval_minus_operator(right: &Object) -> Result<Object, String> {
     match right {
         Object::Integer(int) => Ok(Object::Integer(-(*int))),
         _ => Err(format!("unknown operator: -{}", right.obj_type())),
     }
 }
 
-fn eval_infix_expression<'a>(
-    infix: &Infix,
-    left: &Object,
-    right: &Object,
-) -> Result<Object<'a>, String> {
+fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result<Object, String> {
     match (left, right) {
         (Object::Integer(value1), Object::Integer(value2)) => {
             eval_integer_infix_expression(infix, *value1, *value2)
@@ -120,11 +118,7 @@ fn eval_infix_expression<'a>(
     }
 }
 
-fn eval_integer_infix_expression<'a>(
-    infix: &Infix,
-    left: i64,
-    right: i64,
-) -> Result<Object<'a>, String> {
+fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result<Object, String> {
     match infix {
         Infix::Plus => Ok(Object::Integer(left + right)),
         Infix::Minus => Ok(Object::Integer(left - right)),
@@ -143,11 +137,7 @@ fn eval_integer_infix_expression<'a>(
     }
 }
 
-fn eval_boolean_infix_expression<'a>(
-    infix: &Infix,
-    left: bool,
-    right: bool,
-) -> Result<Object<'a>, String> {
+fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Result<Object, String> {
     match infix {
         Infix::Equals => Ok(Boolean(left == right)),
         Infix::Nequals => Ok(Boolean(left != right)),
@@ -160,24 +150,24 @@ fn eval_boolean_infix_expression<'a>(
     }
 }
 
-fn eval_if_expression<'a>(
+fn eval_if_expression(
     condition: &Expression,
     consequence: &BlockStatement,
     alternative: Option<&BlockStatement>,
-    env: &mut Environment<'a>,
-) -> Result<Object<'a>, String> {
-    let result = eval_expression(condition, env)?;
+    env: Rc<RefCell<Environment>>,
+) -> Result<Object, String> {
+    let result = eval_expression(condition, Rc::clone(&env))?;
     if result.is_truthy() {
-        eval_block_statement(consequence, env)
+        eval_block_statement(consequence, Rc::clone(&env))
     } else {
         alternative
-            .map(|alt| eval_block_statement(alt, env))
+            .map(|alt| eval_block_statement(alt, Rc::clone(&env)))
             .unwrap_or(Ok(Null))
     }
 }
 
-fn eval_identifier<'a>(name: &str, env: &mut Environment<'a>) -> Result<Object<'a>, String> {
-    if let Some(obj) = env.get(name) {
+fn eval_identifier(name: &str, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
+    if let Some(obj) = env.borrow().get(name) {
         return Ok(obj.clone());
     }
     // check if the identifier is actually a Null value
@@ -195,13 +185,15 @@ mod tests {
     use crate::object::Object;
     use crate::object::Object::Null;
     use crate::parser::Parser;
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
     fn test_eval(input: &str) -> Result<Object, String> {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
         let mut env = Environment::new();
-        eval(&program, &mut env)
+        eval(&program, Rc::new(RefCell::new(env)))
     }
 
     #[test]
@@ -442,6 +434,21 @@ mod tests {
 
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_functions() {
+        // GIVEN
+        let tests = vec![("fn(x) { x + 2; };", Object::Function)];
+
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            println!("{}------", result.unwrap());
+
+            // THEN
+            //assert_eq!(result.unwrap(), expected);
         }
     }
 }
