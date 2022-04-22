@@ -68,6 +68,11 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
         Expression::FunctionLiteral(params, body) => {
             Ok(Object::Function(params.to_owned(), body.to_owned(), env))
         }
+        Expression::Call(function, arguments) => {
+            let func = eval_expression(function.as_ref(), Rc::clone(&env))?;
+            let args = eval_expressions(arguments, env)?;
+            Ok(Null)
+        }
         _ => Ok(Null),
     }
 }
@@ -175,6 +180,17 @@ fn eval_identifier(name: &str, env: Rc<RefCell<Environment>>) -> Result<Object, 
         return Ok(Null);
     }
     Err(format!("identifier not found: {}", name))
+}
+
+fn eval_expressions(
+    args: &Vec<Expression>,
+    env: Rc<RefCell<Environment>>,
+) -> Result<Vec<Object>, String> {
+    let mut result = vec![];
+    for arg in args {
+        result.push(eval_expression(arg, Rc::clone(&env))?);
+    }
+    Ok(result)
 }
 
 #[cfg(test)]
