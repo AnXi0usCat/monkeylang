@@ -193,6 +193,29 @@ fn eval_expressions(
     Ok(result)
 }
 
+fn apply_function(func: Object, args: Vec<Object>) -> Result<Object, String> {
+    match func {
+        Object::Function(params, body, env) => {
+            let env = extend_function_env(params, args, env);
+            let result = eval_block_statement(&body, env);
+            Ok()
+        }
+        _ => Err(format!("not a function:  {}", func)),
+    }
+}
+
+fn extend_function_env(
+    params: Vec<String>,
+    args: Vec<Object>,
+    outer: Rc<RefCell<Environment>>,
+) -> Rc<RefCell<Environment>> {
+    let mut env = Rc::new(RefCell::new(Environment::extend(outer)));
+    for (arg, param) in (params, args) {
+        env.set(param, arg)
+    }
+    env
+}
+
 #[cfg(test)]
 mod tests {
     use crate::environment::Environment;
