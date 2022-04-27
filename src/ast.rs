@@ -40,6 +40,7 @@ impl fmt::Display for Statement {
 pub enum Expression {
     Identifier(String),
     IntegerLiteral(i64),
+    StrirngLiteral(String),
     PrefixExpression(Prefix, Box<Expression>),
     InfixExpression(Box<Expression>, Infix, Box<Expression>),
     Boolean(bool),
@@ -54,6 +55,7 @@ impl fmt::Display for Expression {
         match self {
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
+            Self::StrirngLiteral(string) => write!(f, "\"{}\"", string),
             Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
             Self::InfixExpression(exp1, operator, exp2) => {
                 write!(f, "({} {} {})", exp1, operator, exp2)
