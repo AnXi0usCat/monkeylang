@@ -197,6 +197,13 @@ fn eval_expressions(
 fn apply_function(func: Object, args: Vec<Object>) -> Result<Object, String> {
     match func {
         Object::Function(params, body, env) => {
+            if params.len() != args.len() {
+                return Err(format!(
+                    "parameter and argument lengths do not match {} != {}",
+                    params.len(),
+                    args.len()
+                ));
+            }
             let env = extend_function_env(params, args, env);
             let result = eval_block_statement(&body, env)?;
             unwrap_return_value(result)
