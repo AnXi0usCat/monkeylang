@@ -526,4 +526,23 @@ mod tests {
             assert_eq!(result.unwrap().to_string(), expected);
         }
     }
+
+    #[test]
+    fn eval_closure() {
+        // GIVEN
+        let tests = vec![(
+            "let newAdder = fn(x) { 
+                  fn(y) { x + y };
+              };
+              let addTwo = newAdder(2);
+              addTwo(2);",
+            "4",
+        )];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
 }
