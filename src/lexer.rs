@@ -39,6 +39,7 @@ impl<'a> Lexer<'a> {
             '{' => Token::Lbrace,
             '}' => Token::Rbrace,
             ',' => Token::Comma,
+            '"' => Token::String(self.read_string().to_string()),
             '\u{0}' => Token::Eof,
             _ => {
                 return if self.ch.is_alphabetic() {
@@ -104,6 +105,17 @@ impl<'a> Lexer<'a> {
         }
         &self.input[position..self.position]
     }
+
+    fn read_string(&mut self) -> &str {
+        let position = self.position + 1;
+        loop {
+            self.read_char();
+            if self.ch == '"' || self.ch == '\u{0}' {
+                break;
+            }
+        }
+        &self.input[position..self.position]
+    }
 }
 
 impl<'a> Iterator for Lexer<'a> {
@@ -124,7 +136,7 @@ mod tests {
 
     #[test]
     fn next_token() {
-        let input = "
+        let input = r#"
         let five = 5;
 
         let ten = 10;
@@ -143,7 +155,10 @@ mod tests {
         10 == 10;
         10 != 9;
         12.345
-        0.12";
+        0.12;
+        "foobar"
+        "foo bar"
+        "#;
 
         let mut lexer = Lexer::new(input);
 
@@ -223,6 +238,9 @@ mod tests {
             Token::Semicolon,
             Token::Float("12.345".to_string()),
             Token::Float("0.12".to_string()),
+            Token::Semicolon,
+            Token::String("foobar".to_string()),
+            Token::String("foo bar".to_string()),
         ];
 
         for (i, test) in tests.iter().enumerate() {
