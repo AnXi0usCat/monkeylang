@@ -290,6 +290,16 @@ impl<'a> Parser<'a> {
         Ok(args)
     }
 
+    fn parse_string_literal(&mut self) -> Result<Expression, String> {
+        if let Token::String(string) = self.cur_token.clone() {
+            return Ok(Expression::StrirngLiteral(string));
+        }
+        Err(format!(
+            "Expected a Boolean, got {} instead",
+            self.cur_token
+        ))
+    }
+
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
             Token::Ident(_) => Some(Self::parse_identifier),
@@ -301,6 +311,7 @@ impl<'a> Parser<'a> {
             Token::Lparen => Some(Self::parse_grouped_expression),
             Token::If => Some(Self::parse_if_expression),
             Token::Function => Some(Self::parse_function_literal),
+            Token::String(_) => Some(Self::parse_string_literal),
             _ => None,
         }
     }
@@ -609,8 +620,8 @@ mod tests {
             ("fn(x, y) { x + y; }(3, 4)", "fn(x, y) { (x + y); }(3, 4);"),
             ("let x = 3", "let x = 3;"),
             ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
-            // ("\"hello world\"", "\"hello world\";"),
-            // ("let s = \"hello world\"", "let s = \"hello world\";"),
+            ("\"hello world\"", "\"hello world\";"),
+            ("let s = \"hello world\"", "let s = \"hello world\";"),
             // (
             //     "a * [1, 2, 3, 4][b * c] * d",
             //     "((a * ([1, 2, 3, 4][(b * c)])) * d);",
@@ -641,6 +652,21 @@ mod tests {
                 "if (x < y) { x; } else { y; };",
             ),
         ];
+        // WHEN
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn string_literal() {
+        // GIVEN
+        let tests = vec![("\"Hello World\"", "\"Hello World\";")];
         // WHEN
         for (input, expected) in tests {
             let lexer = Lexer::new(input);
