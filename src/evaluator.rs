@@ -3,6 +3,7 @@ use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
 use std::cell::RefCell;
+use std::ops::Deref;
 use std::rc::Rc;
 
 const NULL_LITERAL: &str = "Null";
@@ -71,7 +72,7 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
         Expression::Call(function, arguments) => {
             let func = eval_expression(function.as_ref(), Rc::clone(&env))?;
             let args = eval_expressions(arguments, env)?;
-            Ok(Null)
+            apply_function(func, args)
         }
         _ => Ok(Null),
     }
@@ -197,8 +198,8 @@ fn apply_function(func: Object, args: Vec<Object>) -> Result<Object, String> {
     match func {
         Object::Function(params, body, env) => {
             let env = extend_function_env(params, args, env);
-            let result = eval_block_statement(&body, env);
-            Ok()
+            let result = eval_block_statement(&body, env)?;
+            unwrap_return_value(result)
         }
         _ => Err(format!("not a function:  {}", func)),
     }
@@ -210,10 +211,18 @@ fn extend_function_env(
     outer: Rc<RefCell<Environment>>,
 ) -> Rc<RefCell<Environment>> {
     let mut env = Rc::new(RefCell::new(Environment::extend(outer)));
-    for (arg, param) in (params, args) {
-        env.set(param, arg)
+    for (id, param) in params.into_iter().enumerate() {
+        let arg = args.get(id).cloned().unwrap_or(Object::Null);
+        env.borrow_mut().set(&param, arg)
     }
     env
+}
+
+fn unwrap_return_value(obj: Object) -> Result<Object, String> {
+    match obj {
+        Object::Return(return_val) => Ok(*return_val),
+        _ => Ok(obj),
+    }
 }
 
 #[cfg(test)]
