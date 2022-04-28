@@ -5,6 +5,8 @@ use std::fmt;
 use std::fmt::{write, Formatter};
 use std::rc::Rc;
 
+type BuiltInFunction = fn(Vec<String>) -> Result<Object, String>;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     String(String),
@@ -13,6 +15,7 @@ pub enum Object {
     Null,
     Return(Box<Object>),
     Function(Vec<String>, BlockStatement, Rc<RefCell<Environment>>),
+    Builtin(BuiltInFunction),
 }
 
 #[allow(unused_must_use)]
@@ -27,6 +30,7 @@ impl fmt::Display for Object {
             Self::Function(params, body, _) => {
                 write!(f, "fn({}) {}", params.join(", "), body)
             }
+            Self::Builtin(_) => write!(f, "<type builtin>"),
         };
         Ok(())
     }
@@ -50,6 +54,7 @@ impl Object {
             Self::Null => "NULL",
             Self::Return(_) => "RETURN",
             Self::Function(_, _, _) => "FUNCTION",
+            Self::Builtin(_) => "BUILTIN",
         }
     }
 }
