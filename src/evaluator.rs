@@ -464,6 +464,7 @@ mod tests {
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
             ("foobar", "identifier not found: foobar"),
+            ("Hello" - "World", "unknown operator: STRING - STRING"),
         ];
         // WHEN
         for (input, expected) in tests {
@@ -550,6 +551,18 @@ mod tests {
     fn eval_string_literal() {
         // GIVEN
         let tests = vec![("\"Hello World!\"", "Hello World!")];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_string_concatenation() {
+        // GIVEN
+        let tests = vec![("\"Hello\" + \" \" + \"World!\"", "Hello World!")];
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
