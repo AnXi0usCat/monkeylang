@@ -115,6 +115,9 @@ fn eval_infix_expression(infix: &Infix, left: &Object, right: &Object) -> Result
         (Object::Boolean(value1), Object::Boolean(value2)) => {
             eval_boolean_infix_expression(infix, *value1, *value2)
         }
+        (Object::String(value1), Object::String(value2)) => {
+            eval_string_infix_expression(infix, value1, value2)
+        }
         (left, right) => Err(format!(
             "type mismatch: {} {} {}",
             left.obj_type(),
@@ -152,6 +155,18 @@ fn eval_boolean_infix_expression(infix: &Infix, left: bool, right: bool) -> Resu
             Boolean(left).obj_type(),
             infix,
             Boolean(right).obj_type()
+        )),
+    }
+}
+
+fn eval_string_infix_expression(infix: &Infix, left: &str, right: &str) -> Result<Object, String> {
+    match infix {
+        Infix::Plus => Ok(Object::String(String::from(left) + right)),
+        _ => Err(format!(
+            "unknown operator: {} {} {}",
+            Object::String(String::from(left)).obj_type(),
+            infix,
+            Object::String(String::from(right)).obj_type()
         )),
     }
 }
@@ -464,7 +479,7 @@ mod tests {
                 "unknown operator: BOOLEAN + BOOLEAN",
             ),
             ("foobar", "identifier not found: foobar"),
-            ("Hello" - "World", "unknown operator: STRING - STRING"),
+            ("\"Hello\" - \"World\"", "unknown operator: STRING - STRING"),
         ];
         // WHEN
         for (input, expected) in tests {
