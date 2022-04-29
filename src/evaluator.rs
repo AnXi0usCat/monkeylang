@@ -1,12 +1,11 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
+use crate::builtin::NULL_LITERAL;
 use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
-
-const NULL_LITERAL: &str = "Null";
 
 pub fn eval(program: &Program, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
     let mut result = Null;
@@ -195,6 +194,7 @@ fn eval_identifier(name: &str, env: Rc<RefCell<Environment>>) -> Result<Object, 
     if name == NULL_LITERAL {
         return Ok(Null);
     }
+
     Err(format!("identifier not found: {}", name))
 }
 
@@ -578,6 +578,27 @@ mod tests {
     fn eval_string_concatenation() {
         // GIVEN
         let tests = vec![("\"Hello\" + \" \" + \"World!\"", "Hello World!")];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_builtin_functions() {
+        // GIVEN
+        let tests = vec![
+            (r#"len("")"#, "0"),
+            (r#"len("four")"#, "4"),
+            (r#"len("hello world")"#, "11"),
+            (r#"len(1)"#, "argument to `len` not supported, got INTEGER"),
+            (
+                r#"len("one", "two")"#,
+                "wrong number of arguments. got=2, want=1",
+            ),
+        ];
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
