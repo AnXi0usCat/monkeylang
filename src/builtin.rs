@@ -21,10 +21,16 @@ pub const BUILTINS: &[Builtin] = &[builtin!(len)];
 
 fn len(input: Vec<Object>) -> Result<Object, String> {
     if input.len() != 1 {
-        return Err(format!("Expected 1 argument, got {} instead", input.len()));
+        return Err(format!(
+            "wrong number of arguments. got={}, want=1",
+            input.len()
+        ));
     }
     match &input[0] {
         Object::String(val) => Ok(Object::Integer(val.len() as i64)),
-        _ => Err(format!("Unsupported type {}", &input[0].obj_type())),
+        _ => Err(format!(
+            "argument to `len` not supported, got {}",
+            &input[0].obj_type()
+        )),
     }
 }
