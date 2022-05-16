@@ -2,7 +2,7 @@ use crate::object::Object;
 use std::collections::HashMap;
 
 pub const NULL_LITERAL: &str = "Null";
-type BuiltInFunction<'a> = fn(Vec<String>) -> Result<Object, String>;
+pub type BuiltInFunction = fn(Vec<String>) -> Result<Object, String>;
 
 struct Builtin {
     pub name: &'static str,

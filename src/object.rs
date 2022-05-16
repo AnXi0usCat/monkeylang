@@ -1,11 +1,10 @@
 use crate::ast::BlockStatement;
+use crate::builtin::BuiltInFunction;
 use crate::environment::Environment;
 use std::cell::RefCell;
 use std::fmt;
 use std::fmt::{write, Formatter};
 use std::rc::Rc;
-
-type BuiltInFunction = fn(Vec<String>) -> Result<Object, String>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Object {
