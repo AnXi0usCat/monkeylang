@@ -1,5 +1,5 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
-use crate::builtin::NULL_LITERAL;
+use crate::builtin::{BUILTINS, NULL_LITERAL};
 use crate::environment::Environment;
 use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
@@ -194,7 +194,12 @@ fn eval_identifier(name: &str, env: Rc<RefCell<Environment>>) -> Result<Object, 
     if name == NULL_LITERAL {
         return Ok(Null);
     }
-
+    // check if identifier is a builtin function
+    for b in BUILTINS {
+        if b.name == name {
+            return Ok(b.func.clone());
+        }
+    }
     Err(format!("identifier not found: {}", name))
 }
 
