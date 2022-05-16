@@ -1,16 +1,15 @@
 use crate::object::Object;
-use std::collections::HashMap;
 
 pub const NULL_LITERAL: &str = "Null";
-pub type BuiltInFunction = fn(Vec<String>) -> Result<Object, String>;
+pub type BuiltInFunction = fn(Vec<Object>) -> Result<Object, String>;
 
-struct Builtin {
+pub struct Builtin {
     pub name: &'static str,
     pub func: Object,
 }
 
 macro_rules! builtin {
-    ($var_name: ident) => {
+    ($var_name:ident) => {
         Builtin {
             name: stringify!($var_name),
             func: Object::Builtin($var_name),
