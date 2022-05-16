@@ -1,19 +1,31 @@
 use crate::object::Object;
-use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 pub const NULL_LITERAL: &str = "Null";
+type BuiltInFunction<'a> = fn(Vec<String>) -> Result<Object, String>;
 
-type BuiltInFunction = fn(Vec<String>) -> Result<Object, String>;
-
-fn len(input: Vec<String>) -> Result<Object, String> {
-    Ok(Object::Null)
+struct Builtin {
+    pub name: &'static str,
+    pub func: Object,
 }
 
-lazy_static! {
-    static ref BUILTINS: HashMap<String, BuiltInFunction> = {
-        let mut map = HashMap::new();
-        map.insert(String::from("len"), len);
-        map
+macro_rules! builtin {
+    ($var_name: ident) => {
+        Builtin {
+            name: stringify!($var_name),
+            func: Object::Builtin($var_name),
+        }
     };
+}
+
+pub const BUILTINS: &[Builtin] = &[builtin!(len)];
+
+fn len(input: Vec<Object>) -> Result<Object, String> {
+    if input.len() != 1 {
+        return Err(format!("Expected 1 argument, got {} instead", input.len()));
+    }
+    match &input[0] {
+        Object::String(val) => Ok(Object::Integer(val.len() as i64)),
+        _ => Err(format!("Unsupported type {}", &input[0].obj_type())),
+    }
 }
