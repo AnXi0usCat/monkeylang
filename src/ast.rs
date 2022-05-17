@@ -38,9 +38,10 @@ impl fmt::Display for Statement {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Expression {
+    Array(Vec<Expression>),
     Identifier(String),
     IntegerLiteral(i64),
-    StrirngLiteral(String),
+    StringLiteral(String),
     PrefixExpression(Prefix, Box<Expression>),
     InfixExpression(Box<Expression>, Infix, Box<Expression>),
     Boolean(bool),
@@ -53,9 +54,10 @@ pub enum Expression {
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Array(elements) => write!(f, "{}", print_sequence(elements)),
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
-            Self::StrirngLiteral(string) => write!(f, "\"{}\"", string),
+            Self::StringLiteral(string) => write!(f, "\"{}\"", string),
             Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
             Self::InfixExpression(exp1, operator, exp2) => {
                 write!(f, "({} {} {})", exp1, operator, exp2)
@@ -71,19 +73,20 @@ impl fmt::Display for Expression {
             Self::FunctionLiteral(parameters, body) => {
                 write!(f, "fn({}) {}", parameters.join(", "), body)
             }
-            Self::Call(function, arguments) => write!(
-                f,
-                "{}({})",
-                function,
-                arguments
-                    .iter()
-                    .map(|expr| expr.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            ),
+            Self::Call(function, arguments) => {
+                write!(f, "{}({})", function, print_sequence(arguments))
+            }
         };
         Ok(())
     }
+}
+
+fn print_sequence(sequence: &Vec<Expression>) -> String {
+    sequence
+        .iter()
+        .map(|expr| expr.to_string())
+        .collect::<Vec<String>>()
+        .join(", ")
 }
 
 #[derive(Debug, PartialEq, Clone)]
