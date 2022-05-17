@@ -33,6 +33,8 @@ pub enum Token {
     Rparen,
     Lbrace,
     Rbrace,
+    Lbracket,
+    Rbracket,
 
     // Keywords
     Let,
@@ -71,6 +73,8 @@ impl fmt::Display for Token {
             Token::Rparen => write!(f, ")"),
             Token::Lbrace => write!(f, "{{"),
             Token::Rbrace => write!(f, "}}"),
+            Token::Lbracket => write!(f, "["),
+            Token::Rbracket => write!(f, "]"),
             Token::Let => write!(f, "LET"),
             Token::Function => write!(f, "FUNCTION"),
             Token::If => write!(f, "if"),
