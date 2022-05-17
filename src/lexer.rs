@@ -244,6 +244,7 @@ mod tests {
             Token::String("foo bar".to_string()),
             Token::Lbracket,
             Token::Int("1".to_string()),
+            Token::Comma,
             Token::Int("2".to_string()),
             Token::Rbracket,
         ];
