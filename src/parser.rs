@@ -292,7 +292,7 @@ impl<'a> Parser<'a> {
 
     fn parse_string_literal(&mut self) -> Result<Expression, String> {
         if let Token::String(string) = self.cur_token.clone() {
-            return Ok(Expression::StrirngLiteral(string));
+            return Ok(Expression::StringLiteral(string));
         }
         Err(format!(
             "Expected a Boolean, got {} instead",
