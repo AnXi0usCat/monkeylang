@@ -38,6 +38,8 @@ impl<'a> Lexer<'a> {
             ')' => Token::Rparen,
             '{' => Token::Lbrace,
             '}' => Token::Rbrace,
+            '[' => Token::Lbracket,
+            ']' => Token::Rbracket,
             ',' => Token::Comma,
             '"' => Token::String(self.read_string().to_string()),
             '\u{0}' => Token::Eof,
