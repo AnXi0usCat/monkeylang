@@ -158,6 +158,7 @@ mod tests {
         0.12;
         "foobar"
         "foo bar"
+        [1, 2];
         "#;
 
         let mut lexer = Lexer::new(input);
@@ -241,6 +242,10 @@ mod tests {
             Token::Semicolon,
             Token::String("foobar".to_string()),
             Token::String("foo bar".to_string()),
+            Token::Lbracket,
+            Token::Int("1".to_string()),
+            Token::Int("2".to_string()),
+            Token::Rbracket,
         ];
 
         for (i, test) in tests.iter().enumerate() {
