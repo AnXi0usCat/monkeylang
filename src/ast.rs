@@ -40,6 +40,7 @@ impl fmt::Display for Statement {
 pub enum Expression {
     Array(Vec<Expression>),
     Identifier(String),
+    Index(Box<Expression>, Box<Expression>),
     IntegerLiteral(i64),
     StringLiteral(String),
     PrefixExpression(Prefix, Box<Expression>),
@@ -57,6 +58,7 @@ impl fmt::Display for Expression {
             Self::Array(elements) => write!(f, "[{}]", print_sequence(elements)),
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
+            Self::Index(array, subscript) => write!(f, "{}[{}]", array, subscript),
             Self::StringLiteral(string) => write!(f, "\"{}\"", string),
             Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
             Self::InfixExpression(exp1, operator, exp2) => {
