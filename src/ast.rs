@@ -58,7 +58,7 @@ impl fmt::Display for Expression {
             Self::Array(elements) => write!(f, "[{}]", print_sequence(elements)),
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
-            Self::Index(array, subscript) => write!(f, "{}[{}]", array, subscript),
+            Self::Index(array, index) => write!(f, "({}[{}])", array, index),
             Self::StringLiteral(string) => write!(f, "\"{}\"", string),
             Self::PrefixExpression(operator, exp) => write!(f, "({}{})", operator, exp),
             Self::InfixExpression(exp1, operator, exp2) => {
