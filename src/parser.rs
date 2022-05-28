@@ -246,7 +246,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_call_expression(&mut self, function: Expression) -> Result<Expression, String> {
-        let args = self.parse_arguments(Token::Rparen)?;
+        let args = self.parse_expression_list(Token::Rparen)?;
         Ok(Expression::Call(Box::new(function), args))
     }
 
@@ -271,7 +271,7 @@ impl<'a> Parser<'a> {
         Ok(identifiers)
     }
 
-    fn parse_arguments(&mut self, closing_token: Token) -> Result<Vec<Expression>, String> {
+    fn parse_expression_list(&mut self, closing_token: Token) -> Result<Vec<Expression>, String> {
         let mut args: Vec<Expression> = vec![];
 
         if self.peek_token == closing_token {
@@ -300,6 +300,11 @@ impl<'a> Parser<'a> {
         ))
     }
 
+    fn parse_array_literal(&mut self) -> Result<Expression, String> {
+        let args = self.parse_expression_list(Token::Rbracket)?;
+        Ok(Expression::Array(args))
+    }
+
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
             Token::Ident(_) => Some(Self::parse_identifier),
@@ -312,6 +317,7 @@ impl<'a> Parser<'a> {
             Token::If => Some(Self::parse_if_expression),
             Token::Function => Some(Self::parse_function_literal),
             Token::String(_) => Some(Self::parse_string_literal),
+            Token::Lbracket => Some(Self::parse_array_literal),
             _ => None,
         }
     }
@@ -622,14 +628,14 @@ mod tests {
             ("let x = 3 + f * 8;", "let x = (3 + (f * 8));"),
             ("\"hello world\"", "\"hello world\";"),
             ("let s = \"hello world\"", "let s = \"hello world\";"),
-            // (
-            //     "a * [1, 2, 3, 4][b * c] * d",
-            //     "((a * ([1, 2, 3, 4][(b * c)])) * d);",
-            // ),
-            // (
-            //     "add(a * b[2], b[1], 2 * [1, 2][1])",
-            //     "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])));",
-            // ),
+            (
+                "a * [1, 2, 3, 4][b * c] * d",
+                "((a * ([1, 2, 3, 4][(b * c)])) * d);",
+            ),
+            (
+                "add(a * b[2], b[1], 2 * [1, 2][1])",
+                "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])));",
+            ),
         ];
         // WHEN
         for (input, expected) in tests {
