@@ -75,6 +75,7 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
         }
         Expression::StringLiteral(string) => Ok(Object::String(string.clone())),
         Expression::Array(args) => Ok(Object::Null),
+        Expression::Index(array, index) => Ok(Object::Null),
     }
 }
 
