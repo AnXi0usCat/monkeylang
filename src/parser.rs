@@ -246,7 +246,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_call_expression(&mut self, function: Expression) -> Result<Expression, String> {
-        let args = self.parse_call_arguments()?;
+        let args = self.parse_arguments(Token::Rparen)?;
         Ok(Expression::Call(Box::new(function), args))
     }
 
@@ -271,10 +271,10 @@ impl<'a> Parser<'a> {
         Ok(identifiers)
     }
 
-    fn parse_call_arguments(&mut self) -> Result<Vec<Expression>, String> {
+    fn parse_arguments(&mut self, closing_token: Token) -> Result<Vec<Expression>, String> {
         let mut args: Vec<Expression> = vec![];
 
-        if self.peek_token == Token::Rparen {
+        if self.peek_token == closing_token {
             self.next_token();
             return Ok(args);
         }
@@ -286,7 +286,7 @@ impl<'a> Parser<'a> {
             self.next_token();
             args.push(self.parse_expression(Precedence::Lowest)?);
         }
-        self.expect_peek(Token::Rparen)?;
+        self.expect_peek(closing_token)?;
         Ok(args)
     }
 
@@ -677,4 +677,7 @@ mod tests {
             assert_eq!(program.to_string(), expected);
         }
     }
+
+    #[test]
+    fn parse_array() {}
 }
