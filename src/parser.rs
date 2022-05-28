@@ -16,6 +16,7 @@ enum Precedence {
     Product,     //*
     Prefix,      //-Xor!X
     Call,        // myFunction(X)
+    Index,
 }
 
 pub struct Parser<'a> {
@@ -305,6 +306,15 @@ impl<'a> Parser<'a> {
         Ok(Expression::Array(args))
     }
 
+    fn parse_index_expression(&mut self, array: Expression) -> Result<Expression, String> {
+        self.next_token();
+
+        let index = self.parse_expression(Precedence::Lowest)?;
+        self.expect_peek(Token::Rbracket)?;
+
+        Ok(Expression::Index(Box::new(array), Box::new(index)))
+    }
+
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
             Token::Ident(_) => Some(Self::parse_identifier),
@@ -335,6 +345,7 @@ impl<'a> Parser<'a> {
             Token::Gthen => Some(Self::parse_infix_expression),
             Token::Lthen => Some(Self::parse_infix_expression),
             Token::Lparen => Some(Self::parse_call_expression),
+            Token::Lbracket => Some(Self::parse_index_expression),
             _ => None,
         }
     }
@@ -350,6 +361,7 @@ impl<'a> Parser<'a> {
             Token::Slash => (Precedence::Product, Some(Infix::Slash)),
             Token::Asterisk => (Precedence::Product, Some(Infix::Asterisk)),
             Token::Lparen => (Precedence::Call, None),
+            Token::Lbracket => (Precedence::Index, None),
             _ => (Precedence::Lowest, None),
         }
     }
@@ -685,5 +697,8 @@ mod tests {
     }
 
     #[test]
-    fn parse_array() {}
+    fn array_expression() {}
+
+    #[test]
+    fn index_expression() {}
 }
