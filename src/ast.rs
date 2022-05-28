@@ -54,7 +54,7 @@ pub enum Expression {
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Array(elements) => write!(f, "{}", print_sequence(elements)),
+            Self::Array(elements) => write!(f, "[{}]", print_sequence(elements)),
             Self::Identifier(value) => write!(f, "{}", value),
             Self::IntegerLiteral(int) => write!(f, "{}", int),
             Self::StringLiteral(string) => write!(f, "\"{}\"", string),
