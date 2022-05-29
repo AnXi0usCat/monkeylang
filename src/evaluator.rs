@@ -602,8 +602,8 @@ mod tests {
         // GIVEN
         let tests = vec![
             (r#"len("")"#, "0"),
-            // (r#"len("four")"#, "4"),
-            // (r#"len("hello world")"#, "11"),
+            (r#"len("four")"#, "4"),
+            (r#"len("hello world")"#, "11"),
         ];
         // WHEN
         for (input, expected) in tests {
@@ -623,6 +623,23 @@ mod tests {
                 "wrong number of arguments. got=2, want=1",
             ),
         ];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap_err().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn eval_array_index_expressions() {
+        // GIVEN
+        let tests = vec![
+            ("[1, 2, 3][0]", "1"),
+            ("[1, 2, 3][1]", "2"),
+            ("[1, 2, 3][2]", "3"),
+        ];
+
         // WHEN
         for (input, expected) in tests {
             let result = test_eval(input);
