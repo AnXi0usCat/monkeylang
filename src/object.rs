@@ -24,7 +24,7 @@ impl fmt::Display for Object {
         match self {
             Self::Array(contents) => write!(
                 f,
-                "{}",
+                "[{}]",
                 contents
                     .into_iter()
                     .map(|v| v.to_string())
