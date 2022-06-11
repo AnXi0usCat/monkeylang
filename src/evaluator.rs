@@ -78,7 +78,7 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
             let contents = eval_expressions(args, env)?;
             Ok(Object::Array(contents))
         }
-        Expression::Index(array, index) => Ok(Object::Null),
+        Expression::Index(array, index) => eval_index_expression(array, index, env),
     }
 }
 
@@ -217,6 +217,21 @@ fn eval_expressions(
         result.push(eval_expression(arg, Rc::clone(&env))?);
     }
     Ok(result)
+}
+
+fn eval_index_expression(
+    left: &Expression,
+    index: &Expression,
+    env: Rc<RefCell<Environment>>,
+) -> Result<Object, String> {
+    let left_res = eval_expression(left, env.clone())?;
+    let index_res = eval_expression(index, env)?;
+    match (left_res, index_res) {
+        (Object::Array(array), Object::Integer(int)) => {
+            Ok(array.get(int as usize).cloned().unwrap_or(Object::Null))
+        }
+        (l, i) => Err(format!("Unknown Index operator:  {}", i)),
+    }
 }
 
 fn apply_function(func: Object, args: Vec<Object>) -> Result<Object, String> {
@@ -657,7 +672,7 @@ mod tests {
         for (input, expected) in tests {
             let result = test_eval(input);
             // THEN
-            assert_eq!(result.unwrap_err().to_string(), expected);
+            assert_eq!(result.unwrap().to_string(), expected);
         }
     }
 }
