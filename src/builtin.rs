@@ -17,7 +17,12 @@ macro_rules! builtin {
     };
 }
 
-pub const BUILTINS: &[Builtin] = &[builtin!(len), builtin!(first), builtin!(last)];
+pub const BUILTINS: &[Builtin] = &[
+    builtin!(len),
+    builtin!(first),
+    builtin!(last),
+    builtin!(rest),
+];
 
 fn len(input: Vec<Object>) -> Result<Object, String> {
     if input.len() != 1 {
@@ -68,6 +73,28 @@ fn last(input: Vec<Object>) -> Result<Object, String> {
         Object::Array(val) => {
             return if let Some(val) = val.last() {
                 Ok(val.clone())
+            } else {
+                Ok(Object::Null)
+            }
+        }
+        _ => Err(format!(
+            "argument to `last` not supported, got {}",
+            &input[0].obj_type()
+        )),
+    }
+}
+
+fn rest(input: Vec<Object>) -> Result<Object, String> {
+    if input.len() != 1 {
+        return Err(format!(
+            "wrong number of arguments. got={}, want=1",
+            input.len()
+        ));
+    };
+    match &input[0] {
+        Object::Array(val) => {
+            return if val.len() > 0 {
+                Ok(Object::Array(val[1..].to_vec()))
             } else {
                 Ok(Object::Null)
             }
