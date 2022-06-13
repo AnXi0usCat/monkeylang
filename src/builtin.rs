@@ -17,7 +17,7 @@ macro_rules! builtin {
     };
 }
 
-pub const BUILTINS: &[Builtin] = &[builtin!(len)];
+pub const BUILTINS: &[Builtin] = &[builtin!(len), builtin!(first)];
 
 fn len(input: Vec<Object>) -> Result<Object, String> {
     if input.len() != 1 {
@@ -30,6 +30,28 @@ fn len(input: Vec<Object>) -> Result<Object, String> {
         Object::String(val) => Ok(Object::Integer(val.len() as i64)),
         _ => Err(format!(
             "argument to `len` not supported, got {}",
+            &input[0].obj_type()
+        )),
+    }
+}
+
+fn first(input: Vec<Object>) -> Result<Object, String> {
+    if input.len() != 1 {
+        return Err(format!(
+            "wrong number of arguments. got={}, want=1",
+            input.len()
+        ));
+    };
+    match &input[0] {
+        Object::Array(val) => {
+            return if let Some(val) = val.get(0) {
+                Ok(val.clone())
+            } else {
+                Ok(Object::Null)
+            }
+        }
+        _ => Err(format!(
+            "argument to `first` not supported, got {}",
             &input[0].obj_type()
         )),
     }
