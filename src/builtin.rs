@@ -23,6 +23,7 @@ pub const BUILTINS: &[Builtin] = &[
     builtin!(first),
     builtin!(last),
     builtin!(rest),
+    builtin!(push),
 ];
 
 fn len(input: Vec<Object>) -> Result<Object, String> {
