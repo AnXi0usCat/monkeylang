@@ -1,4 +1,5 @@
 use crate::object::Object;
+use crate::object::Object::Array;
 
 pub const NULL_LITERAL: &str = "Null";
 pub type BuiltInFunction = fn(Vec<Object>) -> Result<Object, String>;
@@ -100,7 +101,27 @@ fn rest(input: Vec<Object>) -> Result<Object, String> {
             }
         }
         _ => Err(format!(
-            "argument to `last` not supported, got {}",
+            "argument to `rest` not supported, got {}",
+            &input[0].obj_type()
+        )),
+    }
+}
+
+fn push(input: Vec<Object>) -> Result<Object, String> {
+    if input.len() != 2 {
+        return Err(format!(
+            "wrong number of arguments. got={}, want=2",
+            input.len()
+        ));
+    };
+    match &input[0] {
+        Object::Array(val) => {
+            let mut new_array = val.clone();
+            new_array.push(input[1].clone());
+            Ok(Object::Array(new_array))
+        }
+        _ => Err(format!(
+            "argument to `push` not supported, got {}",
             &input[0].obj_type()
         )),
     }
