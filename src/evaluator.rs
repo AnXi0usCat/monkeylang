@@ -79,6 +79,7 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
             Ok(Object::Array(contents))
         }
         Expression::Index(array, index) => eval_index_expression(array, index, env),
+        Expression::HashLiteral(values) => Ok(Object::Null),
     }
 }
 
