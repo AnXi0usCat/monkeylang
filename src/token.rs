@@ -25,6 +25,7 @@ pub enum Token {
     Gequals,
     Lequals,
     Nequals,
+    Colon,
 
     // Delimiters
     Comma,
@@ -68,6 +69,7 @@ impl fmt::Display for Token {
             Token::Lequals => write!(f, "<="),
             Token::Nequals => write!(f, "!="),
             Token::Comma => write!(f, ","),
+            Token::Colon => write!(f, ":"),
             Token::Semicolon => write!(f, ";"),
             Token::Lparen => write!(f, "("),
             Token::Rparen => write!(f, ")"),
