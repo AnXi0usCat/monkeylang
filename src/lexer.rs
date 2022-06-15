@@ -34,6 +34,7 @@ impl<'a> Lexer<'a> {
             '>' => self.two_ch_token(Token::Gequals, Token::Gthen, '='),
             '<' => self.two_ch_token(Token::Lequals, Token::Lthen, '='),
             ';' => Token::Semicolon,
+            ':' => Token::Colon,
             '(' => Token::Lparen,
             ')' => Token::Rparen,
             '{' => Token::Lbrace,
@@ -161,6 +162,7 @@ mod tests {
         "foobar"
         "foo bar"
         [1, 2];
+        {"foo": "bar"}
         "#;
 
         let mut lexer = Lexer::new(input);
@@ -249,6 +251,12 @@ mod tests {
             Token::Comma,
             Token::Int("2".to_string()),
             Token::Rbracket,
+            Token::Semicolon,
+            Token::Lbrace,
+            Token::String("foo".to_string()),
+            Token::Colon,
+            Token::String("bar".to_string()),
+            Token::Rbrace,
         ];
 
         for (i, test) in tests.iter().enumerate() {
