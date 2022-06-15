@@ -697,6 +697,26 @@ mod tests {
     }
 
     #[test]
+    fn hash_literal() {
+        // GIVEN
+        let tests = vec![
+            ("{}", "{};"),
+            ("{1: 2, 2: 3}", "{1: 2, 2: 3};"),
+            ("{true: 3}", "{true: 3};"),
+            (r#"{"one": 2, "two": 3}"#, r#"{"one": 2, "two": 3};"#),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let program = parser.parse_program();
+
+            // THEN
+            assert_eq!(program.to_string(), expected);
+        }
+    }
+
+    #[test]
     fn array_expression() {}
 
     #[test]
