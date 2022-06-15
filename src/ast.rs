@@ -49,6 +49,7 @@ pub enum Expression {
     If(Box<Expression>, BlockStatement, Option<BlockStatement>),
     FunctionLiteral(Vec<String>, BlockStatement),
     Call(Box<Expression>, Vec<Expression>),
+    HashLiteral(Vec<(Expression, Expression)>),
 }
 
 #[allow(unused_must_use)]
@@ -77,6 +78,13 @@ impl fmt::Display for Expression {
             }
             Self::Call(function, arguments) => {
                 write!(f, "{}({})", function, print_sequence(arguments))
+            }
+            Self::HashLiteral(values) => {
+                let str_map = values
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", k, v))
+                    .collect::<Vec<String>>();
+                write!(f, "{{ {:?} }}", str_map)
             }
         };
         Ok(())
