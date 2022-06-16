@@ -273,7 +273,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression_list(&mut self, closing_token: Token) -> Result<Vec<Expression>, String> {
-        let mut args: Vec<Expression> = vec![];
+        let mut args: Vec<Expression> = Vec::new();
 
         if self.peek_token == closing_token {
             self.next_token();
@@ -315,6 +315,27 @@ impl<'a> Parser<'a> {
         Ok(Expression::Index(Box::new(array), Box::new(index)))
     }
 
+    fn parse_hash_literal(&mut self) -> Result<Expression, String> {
+        let mut hash_map: Vec<(Expression, Expression)> = Vec::new();
+
+        while self.peek_token != Token::Rbrace {
+            self.next_token();
+            let key = self.parse_expression(Precedence::Lowest)?;
+            self.expect_peek(Token::Colon)?;
+            self.next_token();
+            let value = self.parse_expression(Precedence::Lowest)?;
+            hash_map.push((key, value));
+
+            if self.peek_token != Token::Rbrace {
+                self.expect_peek(Token::Comma)?;
+            }
+
+            self.expect_peek(Token::Rbrace)?;
+        }
+
+        Ok(Expression::HashLiteral(hash_map))
+    }
+
     fn prefix_parse_fn(&self) -> Option<PrefixParseFn<'a>> {
         match self.cur_token {
             Token::Ident(_) => Some(Self::parse_identifier),
@@ -328,6 +349,7 @@ impl<'a> Parser<'a> {
             Token::Function => Some(Self::parse_function_literal),
             Token::String(_) => Some(Self::parse_string_literal),
             Token::Lbracket => Some(Self::parse_array_literal),
+            Token::Lbrace => Some(Parser::parse_hash_literal),
             _ => None,
         }
     }
