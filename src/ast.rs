@@ -84,7 +84,7 @@ impl fmt::Display for Expression {
                     .iter()
                     .map(|(k, v)| format!("{}: {}", k, v))
                     .collect::<Vec<String>>();
-                write!(f, "{{ {:?} }}", str_map)
+                write!(f, "{{{}}}", str_map.join(", "))
             }
         };
         Ok(())
