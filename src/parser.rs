@@ -322,16 +322,18 @@ impl<'a> Parser<'a> {
             self.next_token();
             let key = self.parse_expression(Precedence::Lowest)?;
             self.expect_peek(Token::Colon)?;
+
             self.next_token();
             let value = self.parse_expression(Precedence::Lowest)?;
+
             hash_map.push((key, value));
 
             if self.peek_token != Token::Rbrace {
                 self.expect_peek(Token::Comma)?;
             }
-
-            self.expect_peek(Token::Rbrace)?;
         }
+
+        self.expect_peek(Token::Rbrace)?;
 
         Ok(Expression::HashLiteral(hash_map))
     }
@@ -349,7 +351,7 @@ impl<'a> Parser<'a> {
             Token::Function => Some(Self::parse_function_literal),
             Token::String(_) => Some(Self::parse_string_literal),
             Token::Lbracket => Some(Self::parse_array_literal),
-            Token::Lbrace => Some(Parser::parse_hash_literal),
+            Token::Lbrace => Some(Self::parse_hash_literal),
             _ => None,
         }
     }
@@ -723,7 +725,7 @@ mod tests {
         // GIVEN
         let tests = vec![
             ("{}", "{};"),
-            ("{1: 2, 2: 3}", "{1: 2, 2: 3};"),
+            ("{1: 23, 2: 311}", "{1: 23, 2: 311};"),
             ("{true: 3}", "{true: 3};"),
             (r#"{"one": 2, "two": 3}"#, r#"{"one": 2, "two": 3};"#),
         ];
