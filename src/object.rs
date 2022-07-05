@@ -2,6 +2,7 @@ use crate::ast::BlockStatement;
 use crate::builtin::BuiltInFunction;
 use crate::environment::Environment;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{write, Formatter};
 use std::rc::Rc;
@@ -16,6 +17,7 @@ pub enum Object {
     Return(Box<Object>),
     Function(Vec<String>, BlockStatement, Rc<RefCell<Environment>>),
     Builtin(BuiltInFunction),
+    Hash(HashMap<HashKey, Object>),
 }
 
 #[allow(unused_must_use)]
@@ -38,6 +40,15 @@ impl fmt::Display for Object {
             Self::Null => write!(f, "Null"),
             Self::Function(params, body, _) => {
                 write!(f, "fn({}) {}", params.join(", "), body)
+            }
+            Self::Hash(pairs) => {
+                let mut items = pairs
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", k, v))
+                    .collect::<Vec<String>>();
+
+                items.sort();
+                write!(f, "{{{}}}", items.join(", "))
             }
             Self::Builtin(_) => write!(f, "<type builtin>"),
         };
@@ -65,6 +76,35 @@ impl Object {
             Self::Return(_) => "RETURN",
             Self::Function(_, _, _) => "FUNCTION",
             Self::Builtin(_) => "BUILTIN",
+            Self::Hash(_) => "HASH",
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub enum HashKey {
+    Integer(i64),
+    String(String),
+    Boolean(bool),
+}
+
+impl fmt::Display for HashKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Integer(value) => write!(f, "{}", value),
+            Self::String(value) => write!(f, "\"{}\"", value),
+            Self::Boolean(value) => write!(f, "{}", value),
+        }
+    }
+}
+
+impl HashKey {
+    pub fn from_object(object: &Object) -> Result<HashKey, String> {
+        match object {
+            Object::Integer(value) => Ok(HashKey::Integer(*value)),
+            Object::String(value) => Ok(HashKey::String(String::from(value))),
+            Object::Boolean(value) => Ok(HashKey::Boolean(*value)),
+            _ => Err(format!("Unhashable type: {}", object.obj_type())),
         }
     }
 }
