@@ -232,6 +232,18 @@ fn eval_index_expression(
         (Object::Array(array), Object::Integer(int)) => {
             Ok(array.get(int as usize).cloned().unwrap_or(Object::Null))
         }
+        (Object::Hash(map), Object::Integer(int)) => Ok(map
+            .get(&HashKey::Integer(int))
+            .cloned()
+            .unwrap_or(Object::Null)),
+        (Object::Hash(map), Object::String(value)) => Ok(map
+            .get(&HashKey::String(value))
+            .cloned()
+            .unwrap_or(Object::Null)),
+        (Object::Hash(map), Object::Boolean(value)) => Ok(map
+            .get(&HashKey::Boolean(value))
+            .cloned()
+            .unwrap_or(Object::Null)),
         (l, i) => Err(format!("Unknown Index operator:  {}", i)),
     }
 }
@@ -245,7 +257,7 @@ fn eval_hash_literal(
         let key = eval_expression(k, env.clone())?;
         let value = eval_expression(v, env.clone())?;
         let hash_key = HashKey::from_object(&key)?;
-        map.insert(hash_key, value)
+        map.insert(hash_key, value);
     }
     Ok(Object::Hash(map))
 }
