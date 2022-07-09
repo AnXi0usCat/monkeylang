@@ -1,9 +1,10 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::builtin::{BUILTINS, NULL_LITERAL};
 use crate::environment::Environment;
-use crate::object::Object;
 use crate::object::Object::{Boolean, Integer, Null, Return};
+use crate::object::{HashKey, Object};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -79,7 +80,7 @@ fn eval_expression(expr: &Expression, env: Rc<RefCell<Environment>>) -> Result<O
             Ok(Object::Array(contents))
         }
         Expression::Index(array, index) => eval_index_expression(array, index, env),
-        Expression::HashLiteral(values) => Ok(Object::Null),
+        Expression::HashLiteral(values) => eval_hash_literal(values, env),
     }
 }
 
@@ -233,6 +234,20 @@ fn eval_index_expression(
         }
         (l, i) => Err(format!("Unknown Index operator:  {}", i)),
     }
+}
+
+fn eval_hash_literal(
+    pairs: &[(Expression, Expression)],
+    env: Rc<RefCell<Environment>>,
+) -> Result<Object, String> {
+    let mut map = HashMap::new();
+    for (k, v) in pairs {
+        let key = eval_expression(k, env.clone())?;
+        let value = eval_expression(v, env.clone())?;
+        let hash_key = HashKey::from_object(&key)?;
+        map.insert(hash_key, value)
+    }
+    Ok(Object::Hash(map))
 }
 
 fn apply_function(func: Object, args: Vec<Object>) -> Result<Object, String> {
