@@ -244,7 +244,7 @@ fn eval_index_expression(
             .get(&HashKey::Boolean(value))
             .cloned()
             .unwrap_or(Object::Null)),
-        (l, i) => Err(format!("Unknown Index operator:  {}", i)),
+        (l, i) => Err(format!("Unknown Index operator: {}", i.obj_type())),
     }
 }
 
@@ -723,6 +723,22 @@ mod tests {
             let result = test_eval(input);
             // THEN
             assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
+
+    #[test]
+    fn hash_errors() {
+        // GIVEN
+        let tests = vec![(
+            "{12: 234}[fn(x) { x }];",
+            "Unknown Index operator: FUNCTION",
+        )];
+
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap_err().to_string(), expected);
         }
     }
 }
