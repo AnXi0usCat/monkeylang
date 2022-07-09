@@ -24,6 +24,7 @@ pub const BUILTINS: &[Builtin] = &[
     builtin!(last),
     builtin!(rest),
     builtin!(push),
+    builtin!(puts),
 ];
 
 fn len(input: Vec<Object>) -> Result<Object, String> {
@@ -126,4 +127,11 @@ fn push(input: Vec<Object>) -> Result<Object, String> {
             &input[0].obj_type()
         )),
     }
+}
+
+fn puts(arguments: Vec<Object>) -> Result<Object, String> {
+    for arg in arguments {
+        println!("{}", arg);
+    }
+    Ok(Object::Null)
 }
