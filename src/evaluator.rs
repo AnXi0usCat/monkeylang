@@ -703,4 +703,26 @@ mod tests {
             assert_eq!(result.unwrap().to_string(), expected);
         }
     }
+
+    #[test]
+    fn hash() {
+        // GIVEN
+        let tests = vec![
+            (r#"{"one": 2, "two": 3}"#, r#"{"one": 2, "two": 3}"#),
+            (r#"{"foo": 123, "bar": 234}"#, r#"{"bar": 234, "foo": 123}"#),
+            (r#"{"foo": 123, "bar": 234}["baz"]"#, "Null"),
+            (r#"{"foo": 123, "bar": 234}["foo"]"#, "123"),
+            (r#"{1: 123, 2: 234}[2]"#, "234"),
+            (r#"{true: 3 * 4, false: 2 * 8}[true]"#, "12"),
+            (r#"{true: 3 * 4, false: 2 * 8}[false]"#, "16"),
+            (r#"{"thr" + "ee": 6 / 2, 1: 1}["th" + "ree"]"#, "3"),
+            (r#"let key = "foo"; {"foo": 5}[key]"#, "5"),
+        ];
+        // WHEN
+        for (input, expected) in tests {
+            let result = test_eval(input);
+            // THEN
+            assert_eq!(result.unwrap().to_string(), expected);
+        }
+    }
 }
