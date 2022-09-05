@@ -55,7 +55,7 @@ impl<'a> Lexer<'a> {
                         let decimal_part = self.read_number();
                         Token::Float(format!("{}.{}", integer_part, decimal_part))
                     } else {
-                        Token::Int(String::from(integer_part))
+                        Token::Int(integer_part)
                     }
                 } else {
                     self.read_char();
