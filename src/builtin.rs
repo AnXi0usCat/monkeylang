@@ -1,5 +1,4 @@
 use crate::object::Object;
-use crate::object::Object::Array;
 
 pub const NULL_LITERAL: &str = "Null";
 pub type BuiltInFunction = fn(Vec<Object>) -> Result<Object, String>;
