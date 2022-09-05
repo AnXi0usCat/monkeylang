@@ -4,7 +4,7 @@ use crate::environment::Environment;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::{write, Formatter};
+use std::fmt::Formatter;
 use std::rc::Rc;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -28,7 +28,7 @@ impl fmt::Display for Object {
                 f,
                 "[{}]",
                 contents
-                    .into_iter()
+                    .iter()
                     .map(|v| v.to_string())
                     .collect::<Vec<String>>()
                     .join(", ")
