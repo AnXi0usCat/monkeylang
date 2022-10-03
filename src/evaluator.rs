@@ -30,7 +30,7 @@ fn eval_statement(statement: &Statement, env: Rc<RefCell<Environment>>) -> Resul
         Statement::Let(name, expr) => {
             let result = eval_expression(expr, Rc::clone(&env))?;
             env.borrow_mut().set(name, result.clone());
-            Ok(result)
+            Ok(Null)
         }
     }
 }

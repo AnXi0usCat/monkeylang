@@ -1,5 +1,6 @@
 use crate::environment::Environment;
 use crate::evaluator;
+use crate::object::Object;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::cell::RefCell;
@@ -37,6 +38,7 @@ pub fn start() -> io::Result<()> {
 
         let result = evaluator::eval(&program, Rc::clone(&env));
         match result {
+            Ok(Object::Null) => (),
             Ok(object) => println!("{}", object),
             Err(error) => println!("{}", error),
         }
