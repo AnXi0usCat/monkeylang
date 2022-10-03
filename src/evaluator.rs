@@ -5,7 +5,6 @@ use crate::object::Object::{Boolean, Integer, Null, Return};
 use crate::object::{HashKey, Object};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::rc::Rc;
 
 pub fn eval(program: &Program, env: Rc<RefCell<Environment>>) -> Result<Object, String> {
