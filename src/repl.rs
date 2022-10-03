@@ -37,8 +37,8 @@ pub fn start() -> io::Result<()> {
 
         let result = evaluator::eval(&program, Rc::clone(&env));
         match result {
-            Ok(object) => println!("{}", object.to_string()),
-            Err(error) => println!("{}", error.to_string()),
+            Ok(object) => println!("{}", object),
+            Err(error) => println!("{}", error),
         }
     }
 }
