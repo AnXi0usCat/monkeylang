@@ -29,7 +29,7 @@ fn eval_statement(statement: &Statement, env: Rc<RefCell<Environment>>) -> Resul
         Statement::Return(None) => Ok(Null),
         Statement::Let(name, expr) => {
             let result = eval_expression(expr, Rc::clone(&env))?;
-            env.borrow_mut().set(name, result.clone());
+            env.borrow_mut().set(name, result);
             Ok(Null)
         }
     }
@@ -92,7 +92,6 @@ fn eval_prefix_expression(
     match prefix {
         Prefix::Bang => eval_bang_operator(&obj),
         Prefix::Minus => eval_minus_operator(&obj),
-        _ => Err(format!("unknown operator: {} {}", prefix, obj.obj_type())),
     }
 }
 
