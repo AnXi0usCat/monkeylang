@@ -1,46 +1,59 @@
+use rustyline::error::ReadlineError;
+use rustyline::{Editor, Result};
 use crate::environment::Environment;
 use crate::evaluator;
 use crate::object::Object;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use std::cell::RefCell;
-use std::io::BufRead;
-use std::io::{self, Write};
-use std::process;
 use std::rc::Rc;
 
-pub fn start() -> io::Result<()> {
-    let stdin = io::stdin();
+
+pub fn start() {
+    let mut rl = Editor::<()>::new().unwrap();
     let env = Rc::new(RefCell::new(Environment::new()));
     println!("Hello! This is the 🐒 programming language!");
 
+
     loop {
-        let mut input = String::new();
-        print!("{}", ">> ");
-        std::io::stdout().flush().unwrap();
+        let readline = rl.readline(">> ");
+        
+        match readline {
+            Ok(line) => {
+                rl.add_history_entry(line.as_str());
+ 
+                let lexer = Lexer::new(&line);
+                let mut parser = Parser::new(lexer);
+                let program = parser.parse_program();
 
-        stdin.lock().read_line(&mut input).unwrap_or_else(|err| {
-            eprintln!("Problem reading input: {:?}", (err));
-            process::exit(1);
-        });
-
-        let lexer = Lexer::new(&input);
-        let mut parser = Parser::new(lexer);
-        let program = parser.parse_program();
-
-        if parser.get_errors().is_some() {
-            eprintln!("parser errors:");
-            for err in parser.get_errors().unwrap() {
-                eprintln!("\t{}", err)
+                if parser.get_errors().is_some() {
+                    eprintln!("parser errors:");
+                    for err in parser.get_errors().unwrap() {
+                        eprintln!("\t{}", err);
+                    }
+                    continue;
+                }
+                
+                let result = evaluator::eval(&program, Rc::clone(&env));
+                match result {
+                    Ok(Object::Null) => (),
+                    Ok(object) => println!("{}", object),
+                    Err(error) => println!("{}", error),
+                }
+            },
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+                break
+            },
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+                break
+            },
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break
             }
-            continue;
-        }
-
-        let result = evaluator::eval(&program, Rc::clone(&env));
-        match result {
-            Ok(Object::Null) => (),
-            Ok(object) => println!("{}", object),
-            Err(error) => println!("{}", error),
         }
     }
+
 }
