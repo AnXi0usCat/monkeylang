@@ -1,5 +1,5 @@
 use rustyline::error::ReadlineError;
-use rustyline::{Editor, Result};
+use rustyline::Editor;
 use crate::environment::Environment;
 use crate::evaluator;
 use crate::object::Object;
@@ -13,7 +13,6 @@ pub fn start() {
     let mut rl = Editor::<()>::new().unwrap();
     let env = Rc::new(RefCell::new(Environment::new()));
     println!("Hello! This is the 🐒 programming language!");
-
 
     loop {
         let readline = rl.readline(">> ");
