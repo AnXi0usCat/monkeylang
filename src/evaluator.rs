@@ -1,7 +1,7 @@
 use crate::ast::{BlockStatement, Expression, Infix, Prefix, Program, Statement};
 use crate::builtin::{BUILTINS, NULL_LITERAL};
 use crate::environment::Environment;
-use crate::object::Object::{Boolean, Integer, Null, Return};
+use crate::object::Object::{Boolean, Null, Return};
 use crate::object::{HashKey, Object};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -278,7 +278,7 @@ fn extend_function_env(
     args: Vec<Object>,
     outer: Rc<RefCell<Environment>>,
 ) -> Rc<RefCell<Environment>> {
-    let mut env = Rc::new(RefCell::new(Environment::extend(outer)));
+    let env = Rc::new(RefCell::new(Environment::extend(outer)));
     for (id, param) in params.into_iter().enumerate() {
         let arg = args.get(id).cloned().unwrap_or(Object::Null);
         env.borrow_mut().set(&param, arg)
@@ -307,7 +307,7 @@ mod tests {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         let program = parser.parse_program();
-        let mut env = Environment::new();
+        let env = Environment::new();
         eval(&program, Rc::new(RefCell::new(env)))
     }
 
