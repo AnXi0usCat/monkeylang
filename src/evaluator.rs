@@ -242,7 +242,7 @@ fn eval_index_expression(
             .get(&HashKey::Boolean(value))
             .cloned()
             .unwrap_or(Object::Null)),
-        (l, i) => Err(format!("Unknown Index operator: {}", i.obj_type())),
+        (_, i) => Err(format!("Unknown Index operator: {}", i.obj_type())),
     }
 }
 
