@@ -305,7 +305,6 @@ mod tests {
     use crate::evaluator::eval;
     use crate::lexer::Lexer;
     use crate::object::Object;
-    use crate::object::Object::Null;
     use crate::parser::Parser;
     use std::cell::RefCell;
     use std::rc::Rc;

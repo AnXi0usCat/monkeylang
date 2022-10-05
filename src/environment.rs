@@ -1,5 +1,4 @@
 use crate::object::Object;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
