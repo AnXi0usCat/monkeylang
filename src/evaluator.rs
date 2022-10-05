@@ -141,12 +141,6 @@ fn eval_integer_infix_expression(infix: &Infix, left: i64, right: i64) -> Result
         Infix::Gthen => Ok(Object::Boolean(left > right)),
         Infix::Equals => Ok(Object::Boolean(left == right)),
         Infix::Nequals => Ok(Object::Boolean(left != right)),
-        _ => Err(format!(
-            "unknown operator: {} {} {}",
-            Integer(left).obj_type(),
-            infix,
-            Integer(right).obj_type()
-        )),
     }
 }
 
